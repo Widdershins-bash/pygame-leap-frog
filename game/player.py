@@ -5,11 +5,15 @@ pygame.init()
 
 class Player:
 
-    def __init__(self, surface: pygame.Surface) -> None:
+    def __init__(self, surface: pygame.Surface, size: int) -> None:
         self.surface: pygame.Surface = surface
-        self.x_pos: int = 0
-        self.y_pos: int = 0
-        self.sprite: pygame.Rect = pygame.Rect(self.x_pos, self.y_pos, 100, 100)
+        self.size: int = size
+        self.x_pos: int
+        self.y_pos: int
+        self.sprite: pygame.Rect
+        self.jumped: bool = False
 
-    def draw(self):
-        pygame.draw.rect(self.surface, "black", self.sprite)
+    def draw(self, pos: tuple[int, int]):
+        self.x_pos, self.y_pos = pos
+        self.sprite = pygame.Rect(self.x_pos, self.y_pos, self.size, self.size)
+        pygame.draw.rect(self.surface, "green", self.sprite, border_radius=self.size // 3)
