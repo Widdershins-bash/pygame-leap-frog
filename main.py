@@ -1,9 +1,5 @@
 # Jam Theme: Flow
 
-# River tycoon: how big and clean can you make your river?
-# To keep it simple, I need to make the upgrade system simple and the obstacles simple.
-#
-
 import pygame
 from game.image import Image
 from game.player import Player
@@ -25,10 +21,10 @@ if __name__ == "__main__":
     pygame.init()
 
     display_info = pygame.display.Info()
-    PLAYER_SIZE: int = 40
-    LOGICAL_SIZE: int = 320
+    PLAYER_SIZE: int = 30
+    LOGICAL_SIZE: int = 480
     MARGIN: int = 100
-    INITIAL_SCALE: int = min(display_info.current_w - 100, display_info.current_h - 100) // LOGICAL_SIZE
+    INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
     WIDTH: int = LOGICAL_SIZE * INITIAL_SCALE
     HEIGHT: int = LOGICAL_SIZE * INITIAL_SCALE
 
@@ -37,50 +33,50 @@ if __name__ == "__main__":
     fullscreen: bool = False
     screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
     logical: pygame.Surface = pygame.Surface((LOGICAL_SIZE, LOGICAL_SIZE))
-    font: pygame.Font = pygame.font.Font("freesansbold.ttf", 10)
+
+    fps_font: pygame.Font = pygame.Font("freesansbold.ttf", 10)
+    text_font: pygame.Font = pygame.Font("freesansbold.ttf", 20)
 
     fps: int = 120
     clock: pygame.Clock = pygame.time.Clock()
     images: Image = Image()
     player: Player = Player(surface=logical, size=PLAYER_SIZE)
 
-    # ------------------------ Main Loop ------------------------
+    # -------------------------- Main Loop ------------------------
+    ground: pygame.Rect = pygame.Rect(0, LOGICAL_SIZE - PLAYER_SIZE * 2, LOGICAL_SIZE, PLAYER_SIZE * 2)
+    grid: list[pygame.Rect] = [
+        pygame.Rect(0, i * 2 * PLAYER_SIZE, LOGICAL_SIZE, PLAYER_SIZE)
+        for i in range((LOGICAL_SIZE // PLAYER_SIZE) // 2)
+    ]
 
-    logs: list[Log] = [Log(surface=logical, log_girth=PLAYER_SIZE) for _ in range(50)]
-    travel_distance: int = 0
-    stop_watch: float = 0
     running: bool = True
     while running:
 
         delta_time: float = get_delta_time(clock=clock, fps=fps)
-
+        # ---------------------- Rendering -----------------------
         logical.fill("sky blue")
+        for line in grid:
+            pygame.draw.rect(logical, "blue", line)
+        pygame.draw.rect(logical, "dark green", ground)
 
-        for log in logs:
-            if player.jumped:
-                log.y_pos += PLAYER_SIZE
-            log.x_pos -= max(0.001, log.speed * delta_time)
-            log.draw()
+        player.draw()
+        display_fps(surface=logical, clock=clock, font=fps_font)
 
-            if log.x_pos < 0 - log.log_length or log.y_pos >= LOGICAL_SIZE:
-                logs.remove(log)
-                logs.append(Log(surface=logical, log_girth=PLAYER_SIZE))
+        if not fullscreen:
+            note_render: pygame.Surface = text_font.render("Press F for Fullscreen", False, "black")
+            logical.blit(note_render, ((LOGICAL_SIZE - note_render.width) // 2, PLAYER_SIZE))
 
-        player.jumped = False
-
-        player.draw(((LOGICAL_SIZE - PLAYER_SIZE) // 2, LOGICAL_SIZE - PLAYER_SIZE * 2))
-        display_fps(surface=logical, clock=clock, font=font)
-
+        # ------------------------- End --------------------------
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
-            player.jumped = True
+            player.y_pos -= PLAYER_SIZE
+            if player.y_pos == -PLAYER_SIZE:
+                player.y_pos = player.start_pos()[1]
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            running = event.type != pygame.QUIT
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE and not fullscreen:
-                    running = False
+                running = event.key != pygame.K_ESCAPE or fullscreen
 
                 if event.key == pygame.K_f:
                     if fullscreen:
@@ -90,7 +86,6 @@ if __name__ == "__main__":
                         screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
                     fullscreen = not fullscreen
 
-        stop_watch += 1 * delta_time
         scalar: int = max(1, min(screen.width // LOGICAL_SIZE, screen.height // LOGICAL_SIZE))
         display: pygame.Surface = pygame.transform.scale(logical, (LOGICAL_SIZE * scalar, LOGICAL_SIZE * scalar))
         screen.blit(display, ((screen.width - display.width) // 2, (screen.height - display.height) // 2))
