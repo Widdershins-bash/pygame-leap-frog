@@ -1,9 +1,11 @@
 # Jam Theme: Flow
 
 import pygame
+import math
+from random import randint
 from game.image import Image
 from game.player import Player
-from game.log import Log
+from game.log import Log, LogRow
 
 
 def get_delta_time(clock: pygame.Clock, fps: int) -> float:
@@ -21,7 +23,7 @@ if __name__ == "__main__":
     pygame.init()
 
     display_info = pygame.display.Info()
-    PLAYER_SIZE: int = 30
+    PLAYER_SIZE: int = 40
     LOGICAL_SIZE: int = 480
     MARGIN: int = 100
     INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
@@ -41,13 +43,22 @@ if __name__ == "__main__":
     clock: pygame.Clock = pygame.time.Clock()
     images: Image = Image()
     player: Player = Player(surface=logical, size=PLAYER_SIZE)
-
-    # -------------------------- Main Loop ------------------------
-    ground: pygame.Rect = pygame.Rect(0, LOGICAL_SIZE - PLAYER_SIZE * 2, LOGICAL_SIZE, PLAYER_SIZE * 2)
     grid: list[pygame.Rect] = [
         pygame.Rect(0, i * 2 * PLAYER_SIZE, LOGICAL_SIZE, PLAYER_SIZE)
         for i in range((LOGICAL_SIZE // PLAYER_SIZE) // 2)
     ]
+
+    log_rows: list[LogRow] = [
+        LogRow(
+            logical,
+            randint(-(PLAYER_SIZE * 5), PLAYER_SIZE * 5),
+            randint(2, LOGICAL_SIZE // (PLAYER_SIZE * 2)),
+            PLAYER_SIZE,
+            i,
+        )
+        for i in range(LOGICAL_SIZE // PLAYER_SIZE + 1)
+    ]
+    # -------------------------- Main Loop ------------------------
 
     running: bool = True
     while running:
@@ -57,9 +68,10 @@ if __name__ == "__main__":
         logical.fill("sky blue")
         for line in grid:
             pygame.draw.rect(logical, "blue", line)
-        pygame.draw.rect(logical, "dark green", ground)
 
-        player.draw()
+        for row in log_rows:
+            row.update_row(delta_time)
+
         display_fps(surface=logical, clock=clock, font=fps_font)
 
         if not fullscreen:

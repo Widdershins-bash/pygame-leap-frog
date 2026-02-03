@@ -1,39 +1,51 @@
 import pygame
-import random
+from random import randint
 
-# TODO check the last log spawned in every row (for all 48 rows in this case (girth = 30)) and see if we can spawn a new log in that row
+
+class LogRow:
+    def __init__(self, surface: pygame.Surface, speed: int, log_count: int, girth: int, row: int) -> None:
+        self.surface: pygame.Surface = surface
+        self.speed: int = speed if speed != 0 else 20
+        self.log_count: int = log_count
+        self.girth: int = girth
+        self.row: int = row
+
+        print(self.log_count)
+        self.log_length: int = self.surface.width // self.log_count - self.girth
+        print(self.log_length)
+        self.logs: list[Log] = []
+        for i in range(self.log_count + 1):
+            log: Log = Log(self.surface, self.girth, self.speed, self.log_length)
+            log.x_pos = i * (self.log_length + self.girth)
+            log.y_pos = self.surface.height - self.row * self.girth
+            self.logs.append(log)
+
+    def update_row(self, delta_time: float) -> None:
+        for log in self.logs:
+            log.x_pos += self.speed * delta_time
+            log.draw()
 
 
 class Log:
 
-    def __init__(self, surface: pygame.Surface, log_girth: int, rows: list[list[Log | None]]) -> None:
+    def __init__(self, surface: pygame.Surface, girth: int, speed: int, length: int) -> None:
         self.surface: pygame.Surface = surface
-        self.log_girth: int = log_girth
-        self.log_rows: list[list[Log | None]] = rows
+        self.girth: int = girth
+        self.speed: int = speed
+        self.length: int = length
 
-        self.start_y: int = self.surface.height - self.log_girth * 3
-        self.x_pos, self.y_pos, self.log_length, self.speed = self.create_spawn()
+        self.x_pos: float
+        self.y_pos: float
 
-    def create_spawn(self) -> tuple[float, int, int, int]:
-        rand_row: int = random.randint(0, len(self.log_rows) - 1)
-        speed: int = -(self.log_girth * 2) if rand_row % 2 == 1 else (self.log_girth * 2)
-
-        length: int = random.randint(2, 4) * self.log_girth
-        y_pos: int = self.start_y - rand_row * self.log_girth
-        x_pos: float = 0 - length if speed > 0 else self.surface.width
-
-        return (x_pos, y_pos, length, speed)
+    def check_respawn(self):
+        if self.speed > 0 and self.x_pos > self.surface.width + self.girth:
+            self.x_pos = 0 - self.length
+        elif self.speed < 0 and self.x_pos < -self.length - self.girth:
+            self.x_pos = self.surface.width
 
     def get_rect(self) -> pygame.Rect:
-        return pygame.Rect(self.x_pos, self.y_pos, self.log_length, self.log_girth)
+        return pygame.Rect(self.x_pos, self.y_pos + 3, self.length, self.girth - 6)
 
     def draw(self):
-        pygame.draw.rect(self.surface, "brown", self.get_rect(), 1, 5)
-
-    def check_respawn(self) -> bool:
-        res_point: int = self.surface.width if self.speed > 0 else 0 - self.log_length
-        return (
-            True
-            if (self.x_pos > res_point and self.speed > 0) or (self.x_pos < res_point and self.speed < 0)
-            else False
-        )
+        self.check_respawn()
+        pygame.draw.rect(self.surface, "brown", self.get_rect(), border_radius=5)
