@@ -1,5 +1,5 @@
 import pygame
-from random import randint
+from game.player import Player
 
 
 class LogRow:
@@ -10,9 +10,7 @@ class LogRow:
         self.girth: int = girth
         self.row: int = row
 
-        print(self.log_count)
         self.log_length: int = self.surface.width // self.log_count - self.girth
-        print(self.log_length)
         self.logs: list[Log] = []
         for i in range(self.log_count + 1):
             log: Log = Log(self.surface, self.girth, self.speed, self.log_length)
@@ -20,9 +18,18 @@ class LogRow:
             log.y_pos = self.surface.height - self.row * self.girth
             self.logs.append(log)
 
-    def update_row(self, delta_time: float) -> None:
+    def update(self, delta_time: float, player: Player) -> None:
         for log in self.logs:
             log.x_pos += self.speed * delta_time
+
+            if log.get_rect().colliderect(player.get_rect()):
+                if (
+                    self.speed < 0
+                    and player.x_pos > 0
+                    or self.speed > 0
+                    and player.x_pos < self.surface.width - player.size
+                ):
+                    player.x_pos = log.x_pos
             log.draw()
 
 
@@ -37,15 +44,15 @@ class Log:
         self.x_pos: float
         self.y_pos: float
 
-    def check_respawn(self):
+    def check_respawn(self) -> None:
         if self.speed > 0 and self.x_pos > self.surface.width + self.girth:
             self.x_pos = 0 - self.length
         elif self.speed < 0 and self.x_pos < -self.length - self.girth:
             self.x_pos = self.surface.width
 
     def get_rect(self) -> pygame.Rect:
-        return pygame.Rect(self.x_pos, self.y_pos + 3, self.length, self.girth - 6)
+        return pygame.Rect(self.x_pos, self.y_pos, self.length, self.girth)
 
-    def draw(self):
+    def draw(self) -> None:
         self.check_respawn()
-        pygame.draw.rect(self.surface, "brown", self.get_rect(), border_radius=5)
+        pygame.draw.rect(self.surface, "brown", self.get_rect())

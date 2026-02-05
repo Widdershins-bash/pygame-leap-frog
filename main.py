@@ -5,7 +5,7 @@ import math
 from random import randint
 from game.image import Image
 from game.player import Player
-from game.log import Log, LogRow
+from game.log import LogRow
 
 
 def get_delta_time(clock: pygame.Clock, fps: int) -> float:
@@ -23,12 +23,12 @@ if __name__ == "__main__":
     pygame.init()
 
     display_info = pygame.display.Info()
-    PLAYER_SIZE: int = 40
-    LOGICAL_SIZE: int = 480
+    PLAYER_SIZE: int = 60
+    LOGICAL_SIZE: int = 720
     MARGIN: int = 100
     INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
-    WIDTH: int = LOGICAL_SIZE * INITIAL_SCALE
-    HEIGHT: int = LOGICAL_SIZE * INITIAL_SCALE
+    WIDTH: int = LOGICAL_SIZE
+    HEIGHT: int = LOGICAL_SIZE
 
     pygame.display.set_caption("HOP")
 
@@ -70,13 +70,18 @@ if __name__ == "__main__":
             pygame.draw.rect(logical, "blue", line)
 
         for row in log_rows:
-            row.update_row(delta_time)
+            row.update(delta_time, player)
+
+        player.draw()
 
         display_fps(surface=logical, clock=clock, font=fps_font)
 
         if not fullscreen:
             note_render: pygame.Surface = text_font.render("Press F for Fullscreen", False, "black")
-            logical.blit(note_render, ((LOGICAL_SIZE - note_render.width) // 2, PLAYER_SIZE))
+            logical.blit(
+                note_render,
+                ((LOGICAL_SIZE - note_render.width) // 2, PLAYER_SIZE + (PLAYER_SIZE - note_render.height) // 2),
+            )
 
         # ------------------------- End --------------------------
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
