@@ -1,4 +1,9 @@
 # Jam Theme: Flow
+# TODO Make the game scroll when the player jumps forward
+# TODO Add score counter
+# TODO create controls GUI in blackspace
+# TODO Leave it as death when reaching side of screen or implement a little scroll to increase the playfield
+
 
 import pygame
 import math
@@ -23,8 +28,8 @@ if __name__ == "__main__":
     pygame.init()
 
     display_info = pygame.display.Info()
-    PLAYER_SIZE: int = 60
-    LOGICAL_SIZE: int = 720
+    PLAYER_SIZE: int = 30
+    LOGICAL_SIZE: int = 480
     MARGIN: int = 100
     INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
     WIDTH: int = LOGICAL_SIZE
@@ -50,11 +55,11 @@ if __name__ == "__main__":
 
     log_rows: list[LogRow] = [
         LogRow(
-            logical,
-            randint(-(PLAYER_SIZE * 5), PLAYER_SIZE * 5),
-            randint(2, LOGICAL_SIZE // (PLAYER_SIZE * 2)),
-            PLAYER_SIZE,
-            i,
+            surface=logical,
+            speed=randint(-(PLAYER_SIZE * 5), PLAYER_SIZE * 5),
+            log_count=randint(2, LOGICAL_SIZE // (PLAYER_SIZE * 2) - 2),
+            girth=PLAYER_SIZE,
+            row=i,
         )
         for i in range(LOGICAL_SIZE // PLAYER_SIZE + 1)
     ]
@@ -72,7 +77,7 @@ if __name__ == "__main__":
         for row in log_rows:
             row.update(delta_time, player)
 
-        player.draw()
+        player.update()
 
         display_fps(surface=logical, clock=clock, font=fps_font)
 
@@ -84,10 +89,6 @@ if __name__ == "__main__":
             )
 
         # ------------------------- End --------------------------
-        if pygame.key.get_just_pressed()[pygame.K_SPACE]:
-            player.y_pos -= PLAYER_SIZE
-            if player.y_pos == -PLAYER_SIZE:
-                player.y_pos = player.start_pos()[1]
 
         for event in pygame.event.get():
             running = event.type != pygame.QUIT
