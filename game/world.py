@@ -22,23 +22,28 @@ class World:
         for line in self.water_grid:
             pygame.draw.rect(self.surface, "blue", line)
 
-    def draw_world(self) -> None:
-        self.surface.fill("sky blue")
-        self.draw_grid()
-        self.logs.draw()
-        self.player.draw()
+    def check_collision(self, rect_a: pygame.Rect, rect_b: pygame.Rect) -> bool:
+        return rect_a.colliderect(rect_b)
+
+    def check_player_log_collision(self) -> None:
+        for row in self.logs.rows:
+            for log in row.logs:
+                if self.check_collision(self.player.get_rect(), log.get_rect()):
+                    aligned_x = log.get_aligned_pos(object_x_pos=int(self.player.x_pos))
+                    self.player.land_on_log(aligned_x_pos=aligned_x)
+
+    def update_collisions(self) -> None:
+        self.check_player_log_collision()
+        self.player.check_boundary_collision()
 
     def update_world(self, delta_time: float) -> None:
         self.logs.update(delta_time=delta_time)
         self.player.update()
 
-    # def set_onlog(self, log: Log) -> None:
-    #     if (log.speed < 0 and self.x_pos > 0) or (log.speed > 0 and self.x_pos < log.surface.width - self.size):
-    #         relative_seg_pos: list[int] = [
-    #             abs((int(log.x_pos) + i * self.size) - int(self.x_pos)) for i in range(log.segments)
-    #         ]
-    #         closest_seg: int = min(relative_seg_pos)
-    #         self.x_pos = log.x_pos + relative_seg_pos.index(closest_seg) * self.size
+        self.update_collisions()
 
-    # def check_player_collision(self, player: Player) -> bool:
-    #     return self.get_rect().colliderect(player.get_rect())
+    def draw_world(self) -> None:
+        self.surface.fill("sky blue")
+        self.draw_grid()
+        self.logs.draw()
+        self.player.draw()

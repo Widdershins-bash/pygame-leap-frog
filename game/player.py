@@ -10,8 +10,11 @@ class Player:
     def __init__(self, surface: pygame.Surface, size: int) -> None:
         self.surface: pygame.Surface = surface
         self.size: int = size
+
         self.rect_size: float = self.size - self.size * RECT_SIZE_DECREASE
         self.margin: float = self.size - self.size * MARGIN_DECREASE
+
+        self.in_water: bool = True
 
         self.x_pos, self.y_pos = self.start_pos()
         self.speed_offset: int = 0
@@ -23,6 +26,16 @@ class Player:
 
     def goto_start(self) -> None:
         self.x_pos, self.y_pos = self.start_pos()
+
+    def check_boundary_collision(self) -> None:
+        if self.x_pos < 0:
+            self.x_pos = 0
+        if self.x_pos > self.surface.width - self.size:
+            self.x_pos = self.surface.width - self.size
+
+    def land_on_log(self, aligned_x_pos: int) -> None:
+        self.x_pos = aligned_x_pos
+        self.in_water = False
 
     def handle_movement(self) -> None:
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
@@ -41,6 +54,9 @@ class Player:
         pygame.draw.rect(self.surface, "green", self.get_rect(), border_radius=self.size // 2)
 
     def update(self) -> None:
+
         self.handle_movement()
-        if self.y_pos == -self.size:
+        if self.y_pos == -self.size or self.in_water:
             self.goto_start()
+
+        self.in_water = True

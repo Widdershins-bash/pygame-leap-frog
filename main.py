@@ -11,7 +11,7 @@ def get_delta_time(clock: pygame.Clock, fps: int) -> float:
 
 if __name__ == "__main__":
     pygame.init()
-    pygame.display.set_caption("HOP")
+    pygame.display.set_caption("Leap Frog")
 
     SIZE_CONSTANT: int = 30
 

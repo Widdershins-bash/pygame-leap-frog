@@ -87,6 +87,17 @@ class Log:
         self.x_pos: float = x_pos
         self.y_pos: float = y_pos
 
+    def get_aligned_pos(self, object_x_pos: int) -> int:
+        closest_x: int = self.girth
+        closest_seg: int = 0
+        for i in range(self.segments):
+            relative_x = abs((int(self.x_pos) + i * self.girth) - object_x_pos)
+            if relative_x < closest_x:
+                closest_x = relative_x
+                closest_seg = i
+
+        return int(self.x_pos + closest_seg * self.girth)
+
     def check_respawn(self) -> None:
         if self.speed > 0 and self.x_pos > self.surface.width + self.girth:
             self.x_pos = 0 - self.segments * self.girth
