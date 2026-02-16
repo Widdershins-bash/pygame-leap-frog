@@ -1,64 +1,97 @@
 import pygame
-from game.player import Player
 from random import randint
+
+MAX_SPEED_MULTIPLIER: int = 5
+
+
+class LogSystem:
+
+    def __init__(self, surface: pygame.Surface, girth: int) -> None:
+        self.surface: pygame.Surface = surface
+        self.girth: int = girth
+
+        self.height: int = self.surface.height
+        self.min_speed: int = -(self.girth * MAX_SPEED_MULTIPLIER)
+        self.max_speed: int = self.girth * MAX_SPEED_MULTIPLIER
+        self.min_logs: int = 2
+        self.max_logs: int = self.height // (self.girth * 2) - 2
+        self.rows: list[LogRow] = [self.init_row(row_id=i) for i in range(self.height // self.girth + 1)]
+
+    def init_row(self, row_id: int) -> LogRow:
+        row: LogRow = LogRow(
+            surface=self.surface,
+            speed=randint(self.min_speed, self.max_speed),
+            log_count=randint(self.min_logs, self.max_logs),
+            girth=self.girth,
+            row_id=row_id,
+        )
+        return row
+
+    def update(self, delta_time: float):
+        for row in self.rows:
+            row.update(delta_time=delta_time)
+
+    def draw(self):
+        for row in self.rows:
+            row.draw()
 
 
 class LogRow:
-    def __init__(self, surface: pygame.Surface, speed: int, log_count: int, girth: int, row: int) -> None:
+
+    def __init__(self, surface: pygame.Surface, girth: int, speed: int, log_count: int, row_id: int) -> None:
         self.surface: pygame.Surface = surface
-        self.speed: int = speed if speed != 0 else 20
-        self.log_count: int = log_count
         self.girth: int = girth
-        self.row: int = row
+        self.speed: int = speed or 20
+        self.log_count: int = log_count
+        self.row_id: int = row_id
 
-        self.screen_segments: int = self.surface.width // self.girth
-        self.segment_space: int = self.screen_segments // self.log_count - 1
+        self.y_pos: int = self.surface.height - self.row_id * self.girth
+        self.max_screen_segments: int = self.surface.width // self.girth
+        self.max_log_segments: int = self.max_screen_segments // self.log_count - 1
+        self.logs: list[Log] = [self.init_log(i) for i in range(self.log_count + 1)]
 
-        self.logs: list[Log] = []
-        for i in range(self.log_count + 1):
-            log_segments: int = self.segment_space - randint(1, 2) if self.segment_space > 2 else self.segment_space
-            log: Log = Log(surface=self.surface, girth=self.girth, speed=self.speed, segments=log_segments)
-            log.x_pos = i * (self.segment_space * self.girth + self.girth)
-            log.y_pos = self.surface.height - self.row * self.girth
-            self.logs.append(log)
+    def init_log(self, log_id: int) -> Log:
+        log: Log = Log(
+            surface=self.surface,
+            girth=self.girth,
+            speed=self.speed,
+            segments=self.max_log_segments - randint(1, 2) if self.max_log_segments > 2 else self.max_log_segments,
+            x_pos=log_id * (self.max_log_segments * self.girth + self.girth),
+            y_pos=self.y_pos,
+        )
+        return log
 
-    def update(self, delta_time: float, player: Player) -> None:
+    def check_respawn(self):
+        if self.y_pos >= self.surface.height:
+            ...
+
+    def update(self, delta_time: float) -> None:
         for log in self.logs:
             log.x_pos += self.speed * delta_time
-            if log.check_player_collision(player=player):
-                log.set_player_pos(player=player)
-                player.splashed = False
             log.check_respawn()
+
+    def draw(self):
+        for log in self.logs:
             log.draw()
 
 
 class Log:
 
-    def __init__(self, surface: pygame.Surface, girth: int, speed: int, segments: int) -> None:
+    def __init__(
+        self, surface: pygame.Surface, girth: int, speed: int, segments: int, x_pos: float, y_pos: float
+    ) -> None:
         self.surface: pygame.Surface = surface
         self.girth: int = girth
         self.speed: int = speed
         self.segments: int = segments
-
-        self.x_pos: float
-        self.y_pos: float
+        self.x_pos: float = x_pos
+        self.y_pos: float = y_pos
 
     def check_respawn(self) -> None:
         if self.speed > 0 and self.x_pos > self.surface.width + self.girth:
             self.x_pos = 0 - self.segments * self.girth
         elif self.speed < 0 and self.x_pos < -self.girth - self.segments * self.girth:
             self.x_pos = self.surface.width
-
-    def check_player_collision(self, player: Player) -> bool:
-        return self.get_rect().colliderect(player.get_rect())
-
-    def set_player_pos(self, player: Player) -> None:
-        if self.speed < 0 and player.x_pos > 0 or self.speed > 0 and player.x_pos < self.surface.width - player.size:
-            relative_seg_pos: list[int] = [
-                abs((int(self.x_pos) + i * player.size) - int(player.x_pos)) for i in range(self.segments)
-            ]
-            closest_seg: int = min(relative_seg_pos)
-            player.x_pos = self.x_pos + relative_seg_pos.index(closest_seg) * player.size
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x_pos, self.y_pos, self.girth * self.segments, self.girth)

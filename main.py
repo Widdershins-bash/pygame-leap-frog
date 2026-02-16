@@ -1,16 +1,16 @@
 # Jam Theme: Flow
 # TODO Make the game scroll when the player jumps forward
+# -- Clean up LogManager
+# -- Implement Camera system in main or Class
 # TODO Add score counter
 # TODO create controls GUI in blackspace
 # TODO Leave it as death when reaching side of screen or implement a little scroll to increase the playfield
 
 
 import pygame
-import math
-from random import randint
 from game.image import Image
 from game.player import Player
-from game.log import LogRow
+from game.log import LogSystem
 
 
 def get_delta_time(clock: pygame.Clock, fps: int) -> float:
@@ -48,21 +48,13 @@ if __name__ == "__main__":
     clock: pygame.Clock = pygame.time.Clock()
     images: Image = Image()
     player: Player = Player(surface=logical, size=PLAYER_SIZE)
+    log_system: LogSystem = LogSystem(surface=logical, girth=PLAYER_SIZE)
+
     grid: list[pygame.Rect] = [
         pygame.Rect(0, i * 2 * PLAYER_SIZE, LOGICAL_SIZE, PLAYER_SIZE)
         for i in range((LOGICAL_SIZE // PLAYER_SIZE) // 2)
     ]
 
-    log_rows: list[LogRow] = [
-        LogRow(
-            surface=logical,
-            speed=randint(-(PLAYER_SIZE * 5), PLAYER_SIZE * 5),
-            log_count=randint(2, LOGICAL_SIZE // (PLAYER_SIZE * 2) - 2),
-            girth=PLAYER_SIZE,
-            row=i,
-        )
-        for i in range(LOGICAL_SIZE // PLAYER_SIZE + 1)
-    ]
     # -------------------------- Main Loop ------------------------
 
     running: bool = True
@@ -74,10 +66,10 @@ if __name__ == "__main__":
         for line in grid:
             pygame.draw.rect(logical, "blue", line)
 
-        for row in log_rows:
-            row.update(delta_time, player)
-
+        log_system.update(delta_time=delta_time)
+        log_system.draw()
         player.update()
+        player.draw()
 
         display_fps(surface=logical, clock=clock, font=fps_font)
 
