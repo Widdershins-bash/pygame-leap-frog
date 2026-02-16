@@ -9,8 +9,9 @@
 
 import pygame
 from game.image import Image
-from game.player import Player
-from game.log import LogSystem
+from game.world import World
+
+# from runtime.screen import Screen
 
 
 def get_delta_time(clock: pygame.Clock, fps: int) -> float:
@@ -26,6 +27,7 @@ def display_fps(surface: pygame.Surface, clock: pygame.Clock, font: pygame.Font)
 
 if __name__ == "__main__":
     pygame.init()
+    pygame.display.set_caption("HOP")
 
     display_info = pygame.display.Info()
     PLAYER_SIZE: int = 30
@@ -34,8 +36,6 @@ if __name__ == "__main__":
     INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
     WIDTH: int = LOGICAL_SIZE
     HEIGHT: int = LOGICAL_SIZE
-
-    pygame.display.set_caption("HOP")
 
     fullscreen: bool = False
     screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
@@ -46,14 +46,8 @@ if __name__ == "__main__":
 
     fps: int = 120
     clock: pygame.Clock = pygame.time.Clock()
-    images: Image = Image()
-    player: Player = Player(surface=logical, size=PLAYER_SIZE)
-    log_system: LogSystem = LogSystem(surface=logical, girth=PLAYER_SIZE)
 
-    grid: list[pygame.Rect] = [
-        pygame.Rect(0, i * 2 * PLAYER_SIZE, LOGICAL_SIZE, PLAYER_SIZE)
-        for i in range((LOGICAL_SIZE // PLAYER_SIZE) // 2)
-    ]
+    world: World = World(surface=logical, grid_constant=PLAYER_SIZE)
 
     # -------------------------- Main Loop ------------------------
 
@@ -62,14 +56,9 @@ if __name__ == "__main__":
 
         delta_time: float = get_delta_time(clock=clock, fps=fps)
         # ---------------------- Rendering -----------------------
-        logical.fill("sky blue")
-        for line in grid:
-            pygame.draw.rect(logical, "blue", line)
 
-        log_system.update(delta_time=delta_time)
-        log_system.draw()
-        player.update()
-        player.draw()
+        world.update_world(delta_time=delta_time)
+        world.draw_world()
 
         display_fps(surface=logical, clock=clock, font=fps_font)
 
