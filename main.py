@@ -1,17 +1,6 @@
-# Jam Theme: Flow
-# TODO Make the game scroll when the player jumps forward
-# -- Clean up LogManager
-# -- Implement Camera system in main or Class
-# TODO Add score counter
-# TODO create controls GUI in blackspace
-# TODO Leave it as death when reaching side of screen or implement a little scroll to increase the playfield
-
-
 import pygame
-from game.image import Image
 from game.world import World
-
-# from runtime.screen import Screen
+from runtime.screen import Screen
 
 
 def get_delta_time(clock: pygame.Clock, fps: int) -> float:
@@ -20,74 +9,28 @@ def get_delta_time(clock: pygame.Clock, fps: int) -> float:
     return delta_time
 
 
-def display_fps(surface: pygame.Surface, clock: pygame.Clock, font: pygame.Font):
-    fps_display: pygame.Surface = font.render(f"fps: {clock.get_fps():.0f}", True, "green", "black")
-    surface.blit(fps_display)
-
-
 if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption("HOP")
 
-    display_info = pygame.display.Info()
-    PLAYER_SIZE: int = 30
-    LOGICAL_SIZE: int = 480
-    MARGIN: int = 100
-    INITIAL_SCALE: int = min(display_info.current_w - MARGIN, display_info.current_h - MARGIN) // LOGICAL_SIZE
-    WIDTH: int = LOGICAL_SIZE
-    HEIGHT: int = LOGICAL_SIZE
+    SIZE_CONSTANT: int = 30
 
-    fullscreen: bool = False
-    screen: pygame.Surface = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-    logical: pygame.Surface = pygame.Surface((LOGICAL_SIZE, LOGICAL_SIZE))
-
-    fps_font: pygame.Font = pygame.Font("freesansbold.ttf", 10)
-    text_font: pygame.Font = pygame.Font("freesansbold.ttf", 20)
-
-    fps: int = 120
-    clock: pygame.Clock = pygame.time.Clock()
-
-    world: World = World(surface=logical, grid_constant=PLAYER_SIZE)
+    screen: Screen = Screen(grid_constant=SIZE_CONSTANT)
+    world: World = World(surface=screen.logical, grid_constant=SIZE_CONSTANT)
 
     # -------------------------- Main Loop ------------------------
 
-    running: bool = True
-    while running:
+    while screen.running:
 
-        delta_time: float = get_delta_time(clock=clock, fps=fps)
-        # ---------------------- Rendering -----------------------
+        delta_time: float = get_delta_time(clock=screen.clock, fps=screen.fps)
+
+        for event in pygame.event.get():
+            screen.handle_events(event=event)
 
         world.update_world(delta_time=delta_time)
         world.draw_world()
 
-        display_fps(surface=logical, clock=clock, font=fps_font)
-
-        if not fullscreen:
-            note_render: pygame.Surface = text_font.render("Press F for Fullscreen", False, "black")
-            logical.blit(
-                note_render,
-                ((LOGICAL_SIZE - note_render.width) // 2, PLAYER_SIZE + (PLAYER_SIZE - note_render.height) // 2),
-            )
-
-        # ------------------------- End --------------------------
-
-        for event in pygame.event.get():
-            running = event.type != pygame.QUIT
-
-            if event.type == pygame.KEYDOWN:
-                running = event.key != pygame.K_ESCAPE or fullscreen
-
-                if event.key == pygame.K_f:
-                    if fullscreen:
-                        screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
-
-                    else:
-                        screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-                    fullscreen = not fullscreen
-
-        scalar: int = max(1, min(screen.width // LOGICAL_SIZE, screen.height // LOGICAL_SIZE))
-        display: pygame.Surface = pygame.transform.scale(logical, (LOGICAL_SIZE * scalar, LOGICAL_SIZE * scalar))
-        screen.blit(display, ((screen.width - display.width) // 2, (screen.height - display.height) // 2))
-        pygame.display.flip()
+        screen.draw_overlay()
+        screen.scale_flip()
 
     pygame.quit()

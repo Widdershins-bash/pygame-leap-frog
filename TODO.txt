@@ -1,0 +1,7 @@
+# Jam theme: Flow
+# TODO Make the game scroll when the player jumps forward
+# -- Clean up LogManager
+# -- Implement Camera system in main or Class
+# TODO Add score counter
+# TODO create controls GUI in blackspace
+# TODO Leave it as death when reaching side of screen or implement a little scroll to increase the playfield

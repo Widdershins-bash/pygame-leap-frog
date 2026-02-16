@@ -27,11 +27,11 @@ class LogSystem:
         )
         return row
 
-    def update(self, delta_time: float):
+    def update(self, delta_time: float) -> None:
         for row in self.rows:
             row.update(delta_time=delta_time)
 
-    def draw(self):
+    def draw(self) -> None:
         for row in self.rows:
             row.draw()
 
@@ -61,7 +61,7 @@ class LogRow:
         )
         return log
 
-    def check_respawn(self):
+    def check_respawn(self) -> None:
         if self.y_pos >= self.surface.height:
             ...
 
@@ -70,7 +70,7 @@ class LogRow:
             log.x_pos += self.speed * delta_time
             log.check_respawn()
 
-    def draw(self):
+    def draw(self) -> None:
         for log in self.logs:
             log.draw()
 

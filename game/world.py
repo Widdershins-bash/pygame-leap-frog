@@ -18,17 +18,17 @@ class World:
             for i in range((self.surface.height // self.grid_constant) // 2)
         ]
 
-    def draw_grid(self):
+    def draw_grid(self) -> None:
         for line in self.water_grid:
             pygame.draw.rect(self.surface, "blue", line)
 
-    def draw_world(self):
+    def draw_world(self) -> None:
         self.surface.fill("sky blue")
         self.draw_grid()
         self.logs.draw()
         self.player.draw()
 
-    def update_world(self, delta_time: float):
+    def update_world(self, delta_time: float) -> None:
         self.logs.update(delta_time=delta_time)
         self.player.update()
 

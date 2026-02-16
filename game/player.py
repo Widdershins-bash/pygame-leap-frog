@@ -37,7 +37,7 @@ class Player:
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x_pos + self.margin, self.y_pos + self.margin, self.rect_size, self.rect_size)
 
-    def draw(self):
+    def draw(self) -> None:
         pygame.draw.rect(self.surface, "green", self.get_rect(), border_radius=self.size // 2)
 
     def update(self) -> None:
