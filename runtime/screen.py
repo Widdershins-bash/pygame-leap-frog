@@ -12,7 +12,6 @@ class Screen:
         self.margin: int = MARGIN
         self.fps_font: pygame.Font = pygame.Font("freesansbold.ttf", 12)
         self.tip_font: pygame.Font = pygame.Font("freesansbold.ttf")
-        self.tip_font_outline: pygame.Font = pygame.Font("freesansbold.ttf", 30)
 
         self.fps: int = FPS
         self.clock: pygame.Clock = pygame.time.Clock()

@@ -19,6 +19,8 @@ class Player:
         self.x_pos, self.y_pos = self.start_pos()
         self.speed_offset: int = 0
 
+        self.score: int = 0
+
     def start_pos(self) -> tuple[float, float]:
         x: float = (self.surface.width - self.size) // 2
         y: float = self.surface.height - self.size
@@ -27,6 +29,7 @@ class Player:
     def respawn(self, pos: float):
         self.y_pos = pos
         self.x_pos = self.start_pos()[0]
+        self.score = 0
 
     def check_boundary_collision(self) -> None:
         if self.x_pos < 0:
@@ -42,6 +45,7 @@ class Player:
     def handle_movement(self) -> None:
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
             self.y_pos -= self.size
+            self.score += 1
 
         if pygame.key.get_just_pressed()[pygame.K_RIGHT]:
             self.x_pos += self.size

@@ -45,8 +45,8 @@ class EnviromentManager(GenericObject):
         self.ground.draw()
 
 
-GROUND_HEIGHT_MULTIPLIER: int = 6
-GROUND_START_MULTIPLIER: int = GROUND_HEIGHT_MULTIPLIER // 2
+GROUND_HEIGHT_MULTIPLIER: int = 6  # THRESHOLD_MULTIPLIER * 2
+GROUND_START_MULTIPLIER: int = GROUND_HEIGHT_MULTIPLIER // 2  # THRESHOLD_MULTIPLIER
 
 
 class Ground(EnviromentObject):
@@ -96,7 +96,7 @@ class Ground(EnviromentObject):
 
 
 WATER_GRID_SPACING_MULTIPLIER: int = 2
-STARTING_ROW_ID: int = 4
+STARTING_ROW_ID: int = 4  # THRESHOLD_MULTIPLIER + 1
 
 
 class WaterSystem(GenericObject):

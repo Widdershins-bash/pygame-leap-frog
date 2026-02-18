@@ -2,10 +2,9 @@ import pygame
 from random import randint
 
 MAX_SPEED_MULTIPLIER: int = 5
-STARTING_ROW_ID: int = 4
+STARTING_ROW_ID: int = 4  # THRESHOLD_MULTIPLIER + 1
 
 
-# TODO fix logRow genration and log.py organization
 class GenericLog:
     def __init__(self, surface: pygame.Surface, girth: int) -> None:
         self.surface: pygame.Surface = surface

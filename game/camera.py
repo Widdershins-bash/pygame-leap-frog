@@ -1,5 +1,3 @@
-import pygame
-
 THRESHOLD_MULTIPLIER: int = 3
 EASING_MULTIPLIER: int = 2
 

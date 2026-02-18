@@ -6,6 +6,7 @@ from game.camera import Camera
 
 
 class World:
+
     def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
         self.surface: pygame.Surface = surface
         self.grid_constant: int = grid_constant
@@ -14,7 +15,14 @@ class World:
         self.logs: LogSystem = LogSystem(surface=self.surface, girth=self.grid_constant)
         self.enviroment: EnviromentManager = EnviromentManager(surface=self.surface, grid_constant=self.grid_constant)
         self.camera: Camera = Camera(player_y=self.player.y_pos, grid_constant=self.grid_constant)
+
         self.camera_offset: float = self.camera.y_offset
+        self.font: pygame.Font = pygame.Font("freesansbold.ttf")
+
+    def display_score(self):
+        score: int = self.player.score - 2  # THRESHOLD_MULTIPLIER - 1
+        score_display: pygame.Surface = self.font.render(f"{score if score > 0 else 0}", False, "black")
+        self.surface.blit(score_display, (0, 40))
 
     def check_collision(self, rect_a: pygame.Rect, rect_b: pygame.Rect) -> bool:
         return rect_a.colliderect(rect_b)
@@ -50,3 +58,5 @@ class World:
         self.enviroment.draw()
         self.logs.draw()
         self.player.draw()
+
+        self.display_score()
