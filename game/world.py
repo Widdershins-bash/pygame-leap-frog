@@ -1,6 +1,7 @@
 import pygame
 from game.player import Player
 from game.log import LogSystem
+from game.enviroment import EnviromentManager
 from game.camera import Camera
 
 
@@ -11,39 +12,41 @@ class World:
 
         self.player: Player = Player(surface=self.surface, size=self.grid_constant)
         self.logs: LogSystem = LogSystem(surface=self.surface, girth=self.grid_constant)
-        self.camera: Camera = Camera()
-
-        self.water_grid: list[pygame.Rect] = [
-            pygame.Rect(0, i * 2 * self.grid_constant, self.surface.height, self.grid_constant)
-            for i in range((self.surface.height // self.grid_constant) // 2)
-        ]
-
-    def draw_grid(self) -> None:
-        for line in self.water_grid:
-            pygame.draw.rect(self.surface, "blue", line)
+        self.enviroment: EnviromentManager = EnviromentManager(surface=self.surface, grid_constant=self.grid_constant)
+        self.camera: Camera = Camera(player_y=self.player.y_pos, grid_constant=self.grid_constant)
+        self.camera_offset: float = self.camera.y_offset
 
     def check_collision(self, rect_a: pygame.Rect, rect_b: pygame.Rect) -> bool:
         return rect_a.colliderect(rect_b)
 
     def check_player_log_collision(self) -> None:
-        for row in self.logs.rows:
-            for log in row.logs:
-                if self.check_collision(self.player.get_rect(), log.get_rect()):
-                    aligned_x = log.get_aligned_pos(object_x_pos=int(self.player.x_pos))
-                    self.player.land_on_log(aligned_x_pos=aligned_x)
+        collided, aligned_x, aligned_y = self.logs.check_collisions(object=self.player.get_rect())
+        if collided:
+            self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
+
+    def check_player_enviroment_collision(self) -> None:
+        collided, aligned_x, aligned_y = self.enviroment.check_collisions(object=self.player.get_rect())
+        if collided:
+            self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
     def update_collisions(self) -> None:
         self.check_player_log_collision()
+        self.check_player_enviroment_collision()
         self.player.check_boundary_collision()
 
     def update_world(self, delta_time: float) -> None:
-        self.logs.update(delta_time=delta_time)
-        self.player.update()
-
+        self.enviroment.update(camera_offset=self.camera_offset)
+        self.logs.update(camera_offset=self.camera_offset, delta_time=delta_time)
+        self.player.update(
+            camera_offset=self.camera_offset,
+            respawn_pos=self.enviroment.ground.y_pos + self.enviroment.ground.height // 2 - self.grid_constant,
+        )
         self.update_collisions()
+
+        self.camera_offset = self.camera.get_offset(new_player_y=self.player.y_pos, delta_time=delta_time)
 
     def draw_world(self) -> None:
         self.surface.fill("sky blue")
-        self.draw_grid()
+        self.enviroment.draw()
         self.logs.draw()
         self.player.draw()

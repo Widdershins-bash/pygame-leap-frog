@@ -13,9 +13,10 @@ if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption("Leap Frog")
 
-    SIZE_CONSTANT: int = 30
+    SIZE_CONSTANT: int = 20
+    SCREEN_CONSTANT: int = 240
 
-    screen: Screen = Screen(grid_constant=SIZE_CONSTANT)
+    screen: Screen = Screen(screen_constant=SCREEN_CONSTANT, grid_constant=SIZE_CONSTANT)
     world: World = World(surface=screen.logical, grid_constant=SIZE_CONSTANT)
 
     # -------------------------- Main Loop ------------------------

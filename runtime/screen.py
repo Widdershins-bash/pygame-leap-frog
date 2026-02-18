@@ -1,17 +1,18 @@
 import pygame
 
-LOGICAL_SIZE: int = 480
 MARGIN: int = 100
 FPS: int = 120
 
 
 class Screen:
-    def __init__(self, grid_constant: int) -> None:
+    def __init__(self, screen_constant: int, grid_constant: int) -> None:
         self.grid_constant: int = grid_constant
 
-        self.logical_size: int = LOGICAL_SIZE
+        self.logical_size: int = screen_constant
         self.margin: int = MARGIN
-        self.font: pygame.Font = pygame.Font("freesansbold.ttf", 11)
+        self.fps_font: pygame.Font = pygame.Font("freesansbold.ttf", 12)
+        self.tip_font: pygame.Font = pygame.Font("freesansbold.ttf")
+        self.tip_font_outline: pygame.Font = pygame.Font("freesansbold.ttf", 30)
 
         self.fps: int = FPS
         self.clock: pygame.Clock = pygame.time.Clock()
@@ -23,19 +24,18 @@ class Screen:
         self.logical: pygame.Surface = pygame.Surface((self.logical_size, self.logical_size))
 
     def display_fps(self):
-        fps_display: pygame.Surface = self.font.render(f"fps: {self.clock.get_fps():.0f}", True, "green", "black")
+        fps_display: pygame.Surface = self.fps_font.render(f"fps: {self.clock.get_fps():.0f}", True, "green", "black")
         self.logical.blit(fps_display)
 
     def display_tips(self):
         if not self.fullscreen:
-            note_render: pygame.Surface = self.font.render("Press F for Fullscreen", False, "black")
-            self.logical.blit(
-                note_render,
-                (
-                    (self.logical_size - note_render.width) // 2,
-                    self.grid_constant + (self.grid_constant - note_render.height) // 2,
-                ),
+            note_message: str = "Press F for Fullscreen"
+            note_render: pygame.Surface = self.tip_font.render(note_message, False, "black")
+            note_pos: tuple[int, int] = (
+                (self.logical_size - note_render.width) // 2,
+                self.grid_constant + (self.grid_constant - note_render.height) // 2,
             )
+            self.logical.blit(note_render, note_pos)
 
     def handle_events(self, event: pygame.Event) -> None:
         self.running = event.type != pygame.QUIT

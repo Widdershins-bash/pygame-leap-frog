@@ -24,8 +24,9 @@ class Player:
         y: float = self.surface.height - self.size
         return (x, y)
 
-    def goto_start(self) -> None:
-        self.x_pos, self.y_pos = self.start_pos()
+    def respawn(self, pos: float):
+        self.y_pos = pos
+        self.x_pos = self.start_pos()[0]
 
     def check_boundary_collision(self) -> None:
         if self.x_pos < 0:
@@ -33,8 +34,9 @@ class Player:
         if self.x_pos > self.surface.width - self.size:
             self.x_pos = self.surface.width - self.size
 
-    def land_on_log(self, aligned_x_pos: int) -> None:
+    def land_on_object(self, aligned_x_pos: float, aligned_y_pos: float) -> None:
         self.x_pos = aligned_x_pos
+        self.y_pos = aligned_y_pos
         self.in_water = False
 
     def handle_movement(self) -> None:
@@ -53,10 +55,10 @@ class Player:
     def draw(self) -> None:
         pygame.draw.rect(self.surface, "green", self.get_rect(), border_radius=self.size // 2)
 
-    def update(self) -> None:
-
+    def update(self, camera_offset: float, respawn_pos: float) -> None:
+        self.y_pos += camera_offset
         self.handle_movement()
-        if self.y_pos == -self.size or self.in_water:
-            self.goto_start()
+        if self.in_water:
+            self.respawn(pos=respawn_pos)
 
         self.in_water = True
