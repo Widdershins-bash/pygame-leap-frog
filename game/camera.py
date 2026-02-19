@@ -1,5 +1,4 @@
-THRESHOLD_MULTIPLIER: int = 3
-EASING_MULTIPLIER: int = 2
+from game.constants import THRESHOLD_MULTIPLIER, EASING_MULTIPLIER
 
 
 class Camera:

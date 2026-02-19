@@ -1,4 +1,10 @@
 import pygame
+from game.constants import (
+    GROUND_HEIGHT_MULTIPLIER,
+    GROUND_START_MULTIPLIER,
+    WATER_GRID_SPACING_MULTIPLIER,
+    WATER_STARTING_ROW_ID,
+)
 
 
 class GenericObject:
@@ -7,7 +13,7 @@ class GenericObject:
         self.grid_constant: int = grid_constant
 
 
-class EnviromentObject(GenericObject):
+class EnvironmentObject(GenericObject):
     def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
         super().__init__(surface, grid_constant)
 
@@ -25,7 +31,7 @@ class EnviromentObject(GenericObject):
         pygame.draw.rect(self.surface, self.color, self.get_rect())
 
 
-class EnviromentManager(GenericObject):
+class EnvironmentManager(GenericObject):
     def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
         super().__init__(surface, grid_constant)
 
@@ -45,11 +51,7 @@ class EnviromentManager(GenericObject):
         self.ground.draw()
 
 
-GROUND_HEIGHT_MULTIPLIER: int = 6  # THRESHOLD_MULTIPLIER * 2
-GROUND_START_MULTIPLIER: int = GROUND_HEIGHT_MULTIPLIER // 2  # THRESHOLD_MULTIPLIER
-
-
-class Ground(EnviromentObject):
+class Ground(EnvironmentObject):
     def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
         super().__init__(surface, grid_constant)
 
@@ -95,10 +97,6 @@ class Ground(EnviromentObject):
         return int(self.y_pos + closest_seg * self.grid_constant)
 
 
-WATER_GRID_SPACING_MULTIPLIER: int = 2
-STARTING_ROW_ID: int = 4  # THRESHOLD_MULTIPLIER + 1
-
-
 class WaterSystem(GenericObject):
     def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
         super().__init__(surface, grid_constant)
@@ -106,7 +104,7 @@ class WaterSystem(GenericObject):
         self.top_row: int = (self.surface.height // self.grid_constant) + WATER_GRID_SPACING_MULTIPLIER
 
         self.water_grid: list[WaterRect] = [
-            self.init_water_row(row_id=i * WATER_GRID_SPACING_MULTIPLIER + STARTING_ROW_ID)
+            self.init_water_row(row_id=i * WATER_GRID_SPACING_MULTIPLIER + WATER_STARTING_ROW_ID)
             for i in range(self.top_row // WATER_GRID_SPACING_MULTIPLIER)
         ]
 
@@ -134,7 +132,7 @@ class WaterSystem(GenericObject):
                 row.draw()
 
 
-class WaterRect(EnviromentObject):
+class WaterRect(EnvironmentObject):
     def __init__(self, surface: pygame.Surface, grid_constant: int, y_pos: float) -> None:
         super().__init__(surface, grid_constant)
 

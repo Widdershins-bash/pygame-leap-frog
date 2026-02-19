@@ -1,8 +1,6 @@
 import pygame
 from random import randint
-
-MAX_SPEED_MULTIPLIER: int = 5
-STARTING_ROW_ID: int = 4  # THRESHOLD_MULTIPLIER + 1
+from game.constants import MAX_SPEED_MULTIPLIER, LOG_STARTING_ROW_ID
 
 
 class GenericLog:
@@ -23,7 +21,7 @@ class LogSystem(GenericLog):
         self.max_logs: int = self.height // (self.girth * 2) - 2
         self.top_row: int = (self.height // self.girth) + 1
         self.rows: list[LogRow] = [
-            self.init_row(row_id=i + STARTING_ROW_ID) for i in range(self.top_row - STARTING_ROW_ID)
+            self.init_row(row_id=i + LOG_STARTING_ROW_ID) for i in range(self.top_row - LOG_STARTING_ROW_ID)
         ]
 
     def init_row(self, row_id: int) -> LogRow:

@@ -1,8 +1,5 @@
 import pygame
-
-SIZE_DECREASE_CONSTANT: int = 5
-RECT_SIZE_DECREASE: float = 1 / SIZE_DECREASE_CONSTANT
-MARGIN_DECREASE: float = (SIZE_DECREASE_CONSTANT * 2 - 1) / (SIZE_DECREASE_CONSTANT * 2)
+from game.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE
 
 
 class Player:
@@ -18,7 +15,7 @@ class Player:
 
         self.x_pos, self.y_pos = self.start_pos()
         self.speed_offset: int = 0
-
+        # Refactor score in the future to be entirely handled by world (if new point methods are added)
         self.score: int = 0
 
     def start_pos(self) -> tuple[float, float]:
