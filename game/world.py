@@ -3,7 +3,7 @@ from game.player import Player
 from game.log import LogSystem
 from game.environment import EnvironmentManager
 from game.camera import Camera
-from game.constants import SCORE_OFFSET
+from runtime.constants import SCORE_OFFSET
 
 
 class World:
@@ -14,7 +14,9 @@ class World:
 
         self.player: Player = Player(surface=self.surface, size=self.grid_constant)
         self.logs: LogSystem = LogSystem(surface=self.surface, girth=self.grid_constant)
-        self.enviroment: EnvironmentManager = EnvironmentManager(surface=self.surface, grid_constant=self.grid_constant)
+        self.environment: EnvironmentManager = EnvironmentManager(
+            surface=self.surface, grid_constant=self.grid_constant
+        )
         self.camera: Camera = Camera(player_y=self.player.y_pos, grid_constant=self.grid_constant)
 
         self.camera_offset: float = self.camera.y_offset
@@ -42,7 +44,7 @@ class World:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
     def check_player_enviroment_collision(self) -> None:
-        collided, aligned_x, aligned_y = self.enviroment.check_collisions(object=self.player.get_rect())
+        collided, aligned_x, aligned_y = self.environment.check_collisions(object=self.player.get_rect())
         if collided:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
@@ -52,11 +54,11 @@ class World:
         self.player.check_boundary_collision()
 
     def update_world(self, delta_time: float) -> None:
-        self.enviroment.update(camera_offset=self.camera_offset)
+        self.environment.update(camera_offset=self.camera_offset)
         self.logs.update(camera_offset=self.camera_offset, delta_time=delta_time)
         self.player.update(
             camera_offset=self.camera_offset,
-            respawn_pos=self.enviroment.ground.y_pos + self.enviroment.ground.height // 2 - self.grid_constant,
+            respawn_pos=self.environment.ground.y_pos + self.environment.ground.height // 2 - self.grid_constant,
         )
 
         self.update_collisions()
@@ -65,7 +67,7 @@ class World:
 
     def draw_world(self) -> None:
         self.surface.fill("sky blue")
-        self.enviroment.draw()
+        self.environment.draw()
         self.logs.draw()
         self.player.draw()
         self.draw_score()

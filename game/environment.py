@@ -1,5 +1,5 @@
 import pygame
-from game.constants import (
+from runtime.constants import (
     GROUND_HEIGHT_MULTIPLIER,
     GROUND_START_MULTIPLIER,
     WATER_GRID_SPACING_MULTIPLIER,

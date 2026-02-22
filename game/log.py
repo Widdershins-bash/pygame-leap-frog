@@ -1,6 +1,6 @@
 import pygame
 from random import randint
-from game.constants import MAX_SPEED_MULTIPLIER, LOG_STARTING_ROW_ID
+from runtime.constants import MAX_SPEED_MULTIPLIER, LOG_STARTING_ROW_ID
 
 
 class GenericLog:

@@ -1,4 +1,4 @@
-from game.constants import THRESHOLD_MULTIPLIER, EASING_MULTIPLIER
+from runtime.constants import THRESHOLD_MULTIPLIER, EASING_MULTIPLIER
 
 
 class Camera:

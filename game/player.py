@@ -1,5 +1,5 @@
 import pygame
-from game.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE
+from runtime.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE
 
 
 class Player:

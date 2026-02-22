@@ -21,6 +21,8 @@ class Screen:
 
         self.screen: pygame.Surface = pygame.display.set_mode((self.logical_size, self.logical_size), pygame.RESIZABLE)
         self.logical: pygame.Surface = pygame.Surface((self.logical_size, self.logical_size))
+        self.viewport: pygame.Rect = pygame.Rect(0, 0, 0, 0)
+        self.scalar: int = 1
 
     def display_fps(self):
         fps_display: pygame.Surface = self.fps_font.render(f"fps: {self.clock.get_fps():.0f}", True, "green", "black")
@@ -36,8 +38,9 @@ class Screen:
             )
             self.logical.blit(note_render, note_pos)
 
-    def handle_events(self, event: pygame.Event) -> None:
+    def handle_events(self, event: pygame.Event, game_state: str) -> None:
         self.running = event.type != pygame.QUIT
+        self.running = game_state != "quit"
 
         if event.type == pygame.KEYDOWN:
             self.running = event.key != pygame.K_ESCAPE or self.fullscreen
@@ -56,12 +59,15 @@ class Screen:
 
     def scale_flip(self) -> None:
 
-        scalar: int = max(1, min(self.screen.width, self.screen.height) // self.logical_size)
-        logical_transform: pygame.Surface = pygame.transform.scale(
-            self.logical, (self.logical_size * scalar, self.logical_size * scalar)
+        self.scalar = max(1, min(self.screen.width, self.screen.height) // self.logical_size)
+        scale_point: tuple[int, int] = (self.logical_size * self.scalar, self.logical_size * self.scalar)
+        logical_transform: pygame.Surface = pygame.transform.scale(self.logical, scale_point)
+        logical_location: tuple[int, int] = (
+            (self.screen.width - logical_transform.width) // 2,
+            (self.screen.height - logical_transform.height) // 2,
         )
-        self.screen.blit(
-            logical_transform,
-            ((self.screen.width - logical_transform.width) // 2, (self.screen.height - logical_transform.height) // 2),
-        )
+
+        self.viewport = pygame.Rect(logical_location, scale_point)
+        self.screen.blit(logical_transform, logical_location)
+
         pygame.display.flip()
