@@ -1,6 +1,6 @@
 import pygame
 from runtime.image import Image
-from runtime.constants import IMAGE_SCALAR
+from runtime.constants import BUTTON_SCALAR
 
 
 class MenuManager:
@@ -8,13 +8,17 @@ class MenuManager:
         self.surface: pygame.Surface = surface
         self.game_state: str = init_state
 
-        self.image: Image = Image(scalar=IMAGE_SCALAR)
+        self.image: Image = Image(scalar=BUTTON_SCALAR)
+        self.button_sheet: pygame.Surface = self.image.button_sheet()
+        self.x_scalar: int = 80 * BUTTON_SCALAR
+        self.y_scalar: int = 20 * BUTTON_SCALAR
+
+        self.play: pygame.Surface = self.button_sheet.subsurface((0, 0, self.x_scalar, self.y_scalar))
+        self.quit: pygame.Surface = self.button_sheet.subsurface((0, self.y_scalar, self.x_scalar, self.y_scalar))
 
         self.main_buttons: list[Button] = [
-            Button(surface=self.surface, image=self.image.play_button(), pos=(20, 100), action="play"),
-            Button(
-                surface=self.surface, image=self.image.quit_button(), pos=(20, 100 + 25 * IMAGE_SCALAR), action="quit"
-            ),
+            Button(surface=self.surface, image=self.play, pos=(20, 100), action="play"),
+            Button(surface=self.surface, image=self.quit, pos=(20, 110 + self.y_scalar), action="quit"),
         ]
         self.main_menu: Menu = Menu(surface=self.surface, buttons=self.main_buttons, active_state="mainmenu")
 
@@ -28,7 +32,7 @@ class MenuManager:
                     self.game_state = menu.return_state
                     menu.return_state = None
 
-    def draw(self):
+    def draw(self) -> None:
         for menu in self.menus:
             if self.game_state == menu.active_state:
                 self.main_menu.draw()
@@ -58,7 +62,7 @@ class Menu:
             if button.pressed:
                 self.return_state = button.action
 
-    def draw(self):
+    def draw(self) -> None:
         for button in self.buttons:
             button.draw()
 
@@ -111,14 +115,14 @@ class Button:
             self.image = self.glow_image
 
             if mouse_down:
-                self.image = self.shadow_image
+                self.image = self.base_image
 
             elif mouse_up:
                 self.pressed = True
 
         else:
-            self.image = self.base_image
+            self.image = self.shadow_image
             self.pressed = False
 
-    def draw(self):
+    def draw(self) -> None:
         self.surface.blit(self.image, self.pos)

@@ -23,7 +23,7 @@ class Player:
         y: float = self.surface.height - self.size
         return (x, y)
 
-    def respawn(self, pos: float):
+    def respawn(self, pos: float) -> None:
         self.y_pos = pos
         self.x_pos = self.start_pos()[0]
         self.score = 0

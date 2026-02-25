@@ -25,13 +25,13 @@ class World:
         self.score_display: pygame.Surface | None = None
         self.last_score: int = -1
 
-    def update_score(self):
+    def update_score(self) -> None:
         score: int = max(self.player.score + SCORE_OFFSET, 0)
         if score != self.last_score:
             self.score_display = self.font.render(f"{score}", True, "black")
             self.last_score = score
 
-    def draw_score(self):
+    def draw_score(self) -> None:
         if self.score_display:
             self.surface.blit(self.score_display, (0, 40))
 

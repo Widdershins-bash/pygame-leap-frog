@@ -1,7 +1,5 @@
 import pygame
-
-MARGIN: int = 100
-FPS: int = 120
+from runtime.constants import MARGIN, FPS
 
 
 class Screen:
@@ -24,11 +22,11 @@ class Screen:
         self.viewport: pygame.Rect = pygame.Rect(0, 0, 0, 0)
         self.scalar: int = 1
 
-    def display_fps(self):
+    def display_fps(self) -> None:
         fps_display: pygame.Surface = self.fps_font.render(f"fps: {self.clock.get_fps():.0f}", True, "green", "black")
         self.logical.blit(fps_display)
 
-    def display_tips(self):
+    def display_tips(self) -> None:
         if not self.fullscreen:
             note_message: str = "Press F for Fullscreen"
             note_render: pygame.Surface = self.tip_font.render(note_message, False, "black")
@@ -40,10 +38,11 @@ class Screen:
 
     def handle_events(self, event: pygame.Event, game_state: str) -> None:
         self.running = event.type != pygame.QUIT
-        self.running = game_state != "quit"
+        if game_state == "quit":
+            self.running = False
 
         if event.type == pygame.KEYDOWN:
-            self.running = event.key != pygame.K_ESCAPE or self.fullscreen
+            # self.running = event.key != pygame.K_ESCAPE or self.fullscreen
 
             if event.key == pygame.K_f:
                 if self.fullscreen:
