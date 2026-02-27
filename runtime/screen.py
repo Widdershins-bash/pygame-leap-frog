@@ -1,5 +1,5 @@
 import pygame
-from runtime.constants import MARGIN, FPS
+from runtime.constants import SCREEN_MARGIN, FPS, ColorPalette as cp, GameState as gs
 
 
 class Screen:
@@ -7,7 +7,7 @@ class Screen:
         self.grid_constant: int = grid_constant
 
         self.logical_size: int = screen_constant
-        self.margin: int = MARGIN
+        self.margin: int = SCREEN_MARGIN
         self.fps_font: pygame.Font = pygame.Font("freesansbold.ttf", 12)
         self.tip_font: pygame.Font = pygame.Font("freesansbold.ttf")
 
@@ -23,13 +23,13 @@ class Screen:
         self.scalar: int = 1
 
     def display_fps(self) -> None:
-        fps_display: pygame.Surface = self.fps_font.render(f"fps: {self.clock.get_fps():.0f}", True, "green", "black")
+        fps_display: pygame.Surface = self.fps_font.render(f"fps: {self.clock.get_fps():.0f}", True, cp.FPS, cp.DEFAULT)
         self.logical.blit(fps_display)
 
     def display_tips(self) -> None:
         if not self.fullscreen:
             note_message: str = "Press F for Fullscreen"
-            note_render: pygame.Surface = self.tip_font.render(note_message, False, "black")
+            note_render: pygame.Surface = self.tip_font.render(note_message, False, cp.DEFAULT)
             note_pos: tuple[int, int] = (
                 (self.logical_size - note_render.width) // 2,
                 self.grid_constant + (self.grid_constant - note_render.height) // 2,
@@ -38,11 +38,11 @@ class Screen:
 
     def handle_events(self, event: pygame.Event, game_state: str) -> None:
         self.running = event.type != pygame.QUIT
-        if game_state == "quit":
+        if game_state == gs.QUIT:
             self.running = False
 
         if event.type == pygame.KEYDOWN:
-            # self.running = event.key != pygame.K_ESCAPE or self.fullscreen
+            self.running = event.key != pygame.K_ESCAPE or self.fullscreen  # temporary escape for testing
 
             if event.key == pygame.K_f:
                 if self.fullscreen:

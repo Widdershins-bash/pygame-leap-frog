@@ -1,5 +1,5 @@
 import pygame
-from runtime.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE
+from runtime.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE, ColorPalette as cp
 
 
 class Player:
@@ -54,7 +54,7 @@ class Player:
         return pygame.Rect(self.x_pos + self.margin, self.y_pos + self.margin, self.rect_size, self.rect_size)
 
     def draw(self) -> None:
-        pygame.draw.rect(self.surface, "green", self.get_rect(), border_radius=self.size // 2)
+        pygame.draw.rect(self.surface, cp.FROG, self.get_rect(), border_radius=self.size // 2)
 
     def update(self, camera_offset: float, respawn_pos: float) -> None:
         self.y_pos += camera_offset

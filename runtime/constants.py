@@ -1,3 +1,5 @@
+import pygame
+
 # main
 SCREEN_MULTIPLIER: int = 4
 SCREEN_CONSTANT: int = SCREEN_MULTIPLIER * 120
@@ -5,6 +7,7 @@ SIZE_CONSTANT: int = (SCREEN_MULTIPLIER - 1) * 10
 
 # menu
 BUTTON_SCALAR: int = SCREEN_MULTIPLIER - 1
+MENU_MARGIN: int = BUTTON_SCALAR * 3
 
 # camera
 THRESHOLD_MULTIPLIER: int = 3
@@ -22,6 +25,7 @@ WATER_STARTING_ROW_ID: int = THRESHOLD_MULTIPLIER - 1
 # log
 MAX_SPEED_MULTIPLIER: int = 5
 LOG_STARTING_ROW_ID: int = THRESHOLD_MULTIPLIER + 1
+BORDER_RADIUS: int = SIZE_CONSTANT // 3
 
 # player
 SIZE_DECREASE_CONSTANT: int = 5
@@ -29,5 +33,35 @@ RECT_SIZE_DECREASE: float = 1 / SIZE_DECREASE_CONSTANT
 MARGIN_DECREASE: float = (SIZE_DECREASE_CONSTANT * 2 - 1) / (SIZE_DECREASE_CONSTANT * 2)
 
 # screen
-MARGIN: int = 100
+SCREEN_MARGIN: int = 100
 FPS: int = 120
+
+# image
+IMAGE_PATH: str = "assets/images/"
+IMAGE_SCALE_CONSTANT: int = 20
+
+
+# color palette
+class ColorPalette:
+    MAHOGANY: pygame.typing.ColorLike = "#4a3337"
+    WATER: pygame.typing.ColorLike = "#6a8a99"
+    GROUND: pygame.typing.ColorLike = "#4e6e60"
+    FROG: pygame.typing.ColorLike = "#81967e"
+    SAND: pygame.typing.ColorLike = "#ccbb98"
+
+    DEFAULT: pygame.typing.ColorLike = "#000000"
+    FPS: pygame.typing.ColorLike = "#22ff00"
+
+
+# game state
+class GameState:
+    MAIN_MENU: str = "mainmenu"
+    PLAY: str = "play"
+    QUIT: str = "quit"
+    SETTINGS: str = "settings"
+
+    ACTIVE: str = "always"
+
+
+# fonts
+class Font: ...

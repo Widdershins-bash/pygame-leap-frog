@@ -1,32 +1,34 @@
 import pygame
-from runtime.image import Image
-from runtime.constants import BUTTON_SCALAR
+from runtime.button import ButtonConfig, Button
+from runtime.constants import BUTTON_SCALAR, ColorPalette as cp, GameState as gs
 
 
+# TODO figure out how I want to display the buttons and the background I want for them
+# - I want a legit background for the main menu, but then I will create an alpha surface for the options menu
+# - I want the legit background to be water with a few logs floating across it
+# - I want everything to be centered.
 class MenuManager:
     def __init__(self, surface: pygame.Surface, init_state: str) -> None:
         self.surface: pygame.Surface = surface
         self.game_state: str = init_state
 
-        self.image: Image = Image(scalar=BUTTON_SCALAR)
-        self.button_sheet: pygame.Surface = self.image.button_sheet()
-        self.x_scalar: int = 80 * BUTTON_SCALAR
-        self.y_scalar: int = 20 * BUTTON_SCALAR
+        self.button: ButtonConfig = ButtonConfig(surface=self.surface)
 
-        self.play: pygame.Surface = self.button_sheet.subsurface((0, 0, self.x_scalar, self.y_scalar))
-        self.quit: pygame.Surface = self.button_sheet.subsurface((0, self.y_scalar, self.x_scalar, self.y_scalar))
+        self.main_menu: Menu = Menu(
+            surface=self.surface, buttons=self.button.main_buttons, active_state=gs.MAIN_MENU, bg_color=cp.SAND
+        )
+        self.settings_widget: Menu = Menu(
+            surface=self.surface, buttons=[self.button.settings_widget], active_state=gs.ACTIVE, auto_pos=False
+        )
+        self.settings_menu: Menu = Menu(
+            surface=self.surface, buttons=self.button.settings_buttons, active_state=gs.SETTINGS
+        )
 
-        self.main_buttons: list[Button] = [
-            Button(surface=self.surface, image=self.play, pos=(20, 100), action="play"),
-            Button(surface=self.surface, image=self.quit, pos=(20, 110 + self.y_scalar), action="quit"),
-        ]
-        self.main_menu: Menu = Menu(surface=self.surface, buttons=self.main_buttons, active_state="mainmenu")
-
-        self.menus: list[Menu] = [self.main_menu]
+        self.menus: list[Menu] = [self.main_menu, self.settings_widget, self.settings_menu]
 
     def update(self, viewport: pygame.Rect, scale: int) -> None:
         for menu in self.menus:
-            if self.game_state == menu.active_state:
+            if self.game_state == menu.active_state or menu.active_state == gs.ACTIVE:
                 menu.update(viewport=viewport, scale=scale)
                 if menu.return_state:
                     self.game_state = menu.return_state
@@ -34,8 +36,8 @@ class MenuManager:
 
     def draw(self) -> None:
         for menu in self.menus:
-            if self.game_state == menu.active_state:
-                self.main_menu.draw()
+            if self.game_state == menu.active_state or menu.active_state == gs.ACTIVE:
+                menu.draw()
 
 
 class Menu:
@@ -44,17 +46,35 @@ class Menu:
         surface: pygame.Surface,
         buttons: list[Button],
         active_state: str,
+        auto_pos: bool = True,
         bg_image: pygame.Surface | None = None,
         bg_color: pygame.typing.ColorLike | None = None,
     ) -> None:
         self.surface: pygame.Surface = surface
         self.buttons: list[Button] = buttons
+        self.auto_pos: bool = auto_pos
         self.active_state: str = active_state
+
+        if self.auto_pos:
+            self.set_positions()
 
         self.bg_image: pygame.Surface | None = bg_image
         self.bg_color: pygame.typing.ColorLike | None = bg_color
+        self.bg_rect: pygame.Rect = pygame.Rect(0, 0, self.surface.width, self.surface.height)
 
         self.return_state: str | None = None
+
+    def set_positions(self):
+        spacing: int = BUTTON_SCALAR * 2
+        n: int = len(self.buttons)
+
+        for i, button in enumerate(self.buttons):
+            index_height: int = spacing + button.image.height
+
+            x: int = (self.surface.width - button.image.width) // 2
+            y: int = (self.surface.height - (n * index_height)) // 2 + (i * index_height)
+
+            button.pos = (x, y)
 
     def update(self, viewport: pygame.Rect, scale: int) -> None:
         for button in self.buttons:
@@ -63,66 +83,8 @@ class Menu:
                 self.return_state = button.action
 
     def draw(self) -> None:
+        if self.bg_color:
+            pygame.draw.rect(self.surface, self.bg_color, self.bg_rect)
+
         for button in self.buttons:
             button.draw()
-
-
-class Button:
-    def __init__(self, surface: pygame.Surface, image: pygame.Surface, pos: tuple[int, int], action: str) -> None:
-        self.surface: pygame.Surface = surface
-        self.image: pygame.Surface = image
-        self.pos: tuple[int, int] = pos
-        self.action: str = action
-
-        self.pressed: bool = False
-
-        self.base_image: pygame.Surface = self.image
-        self.glow_image: pygame.Surface = self.create_hue(offset=40)
-        self.shadow_image: pygame.Surface = self.create_hue(offset=-40)
-
-    def create_hue(self, offset: int) -> pygame.Surface:
-        hue: pygame.Surface = self.image.copy()
-        if offset < 0:
-            amount: int = abs(offset)
-            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_SUB)
-
-        else:
-            amount: int = offset
-            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_ADD)
-
-        return hue
-
-    def scale_mouse(self, viewport: pygame.Rect, scale: int) -> tuple[int, int] | None:
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-        if not viewport.collidepoint((mouse_x, mouse_y)):
-            return None
-
-        scale_x: int = (mouse_x - viewport.x) // scale
-        scale_y: int = (mouse_y - viewport.y) // scale
-
-        return scale_x, scale_y
-
-    def update(self, viewport: pygame.Rect, scale: int) -> None:
-        mouse_pos: tuple[int, int] | None = self.scale_mouse(viewport=viewport, scale=scale)
-        if not mouse_pos:
-            return None
-
-        touching: bool = self.image.get_rect(topleft=self.pos).collidepoint(mouse_pos)
-        mouse_down: bool = pygame.mouse.get_pressed()[0]
-        mouse_up: bool = pygame.mouse.get_just_released()[0]
-
-        if touching:
-            self.image = self.glow_image
-
-            if mouse_down:
-                self.image = self.base_image
-
-            elif mouse_up:
-                self.pressed = True
-
-        else:
-            self.image = self.shadow_image
-            self.pressed = False
-
-    def draw(self) -> None:
-        self.surface.blit(self.image, self.pos)

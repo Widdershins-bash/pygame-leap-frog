@@ -3,7 +3,7 @@ from game.player import Player
 from game.log import LogSystem
 from game.environment import EnvironmentManager
 from game.camera import Camera
-from runtime.constants import SCORE_OFFSET
+from runtime.constants import SCORE_OFFSET, ColorPalette as cp
 
 
 class World:
@@ -28,7 +28,7 @@ class World:
     def update_score(self) -> None:
         score: int = max(self.player.score + SCORE_OFFSET, 0)
         if score != self.last_score:
-            self.score_display = self.font.render(f"{score}", True, "black")
+            self.score_display = self.font.render(f"{score}", True, cp.DEFAULT)
             self.last_score = score
 
     def draw_score(self) -> None:
@@ -43,14 +43,14 @@ class World:
         if collided:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
-    def check_player_enviroment_collision(self) -> None:
+    def check_player_environment_collision(self) -> None:
         collided, aligned_x, aligned_y = self.environment.check_collisions(object=self.player.get_rect())
         if collided:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
     def update_collisions(self) -> None:
         self.check_player_log_collision()
-        self.check_player_enviroment_collision()
+        self.check_player_environment_collision()
         self.player.check_boundary_collision()
 
     def update_world(self, delta_time: float) -> None:
@@ -66,7 +66,7 @@ class World:
         self.camera_offset = self.camera.get_offset(new_player_y=self.player.y_pos, delta_time=delta_time)
 
     def draw_world(self) -> None:
-        self.surface.fill("sky blue")
+        self.surface.fill(cp.WATER)
         self.environment.draw()
         self.logs.draw()
         self.player.draw()

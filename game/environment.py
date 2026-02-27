@@ -4,6 +4,7 @@ from runtime.constants import (
     GROUND_START_MULTIPLIER,
     WATER_GRID_SPACING_MULTIPLIER,
     WATER_STARTING_ROW_ID,
+    ColorPalette as cp,
 )
 
 
@@ -22,7 +23,7 @@ class EnvironmentObject(GenericObject):
         self.width: int = 0
         self.height: int = 0
 
-        self.color: pygame.typing.ColorLike = "black"
+        self.color: pygame.typing.ColorLike = cp.DEFAULT
 
     def get_rect(self):
         return pygame.Rect(self.x_pos, self.y_pos, self.width, self.height)
@@ -60,7 +61,7 @@ class Ground(EnvironmentObject):
         self.x_pos = 0
         self.y_pos = self.surface.height - self.height + (GROUND_START_MULTIPLIER * self.grid_constant)
 
-        self.color = "darkgreen"
+        self.color = cp.GROUND
         self.x_segments: int = self.width // self.grid_constant
         self.y_segments: int = self.height // self.grid_constant
 
@@ -141,7 +142,7 @@ class WaterRect(EnvironmentObject):
         self.x_pos = 0
         self.y_pos = y_pos
 
-        self.color = "blue"
+        self.color = cp.WATER
 
     def update(self, camera_offset: float) -> None:
         self.y_pos += camera_offset

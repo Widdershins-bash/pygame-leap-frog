@@ -1,6 +1,6 @@
 import pygame
 from random import randint
-from runtime.constants import MAX_SPEED_MULTIPLIER, LOG_STARTING_ROW_ID
+from runtime.constants import MAX_SPEED_MULTIPLIER, LOG_STARTING_ROW_ID, BORDER_RADIUS, ColorPalette as cp
 
 
 class GenericLog:
@@ -141,4 +141,4 @@ class Log(GenericLog):
         return pygame.Rect(self.x_pos, self.y_pos, self.girth * self.segments, self.girth)
 
     def draw(self) -> None:
-        pygame.draw.rect(self.surface, "brown", self.get_rect())
+        pygame.draw.rect(self.surface, cp.MAHOGANY, self.get_rect(), border_radius=BORDER_RADIUS)

@@ -1,5 +1,5 @@
 import pygame
-from runtime.constants import SIZE_CONSTANT, SCREEN_CONSTANT
+from runtime.constants import SIZE_CONSTANT, SCREEN_CONSTANT, GameState as gs
 from runtime.screen import Screen
 from runtime.menu import MenuManager
 from game.world import World
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption("Leap Frog")
 
-    game_state: str = "mainmenu"
+    game_state: str = gs.MAIN_MENU
 
     screen: Screen = Screen(screen_constant=SCREEN_CONSTANT, grid_constant=SIZE_CONSTANT)
     menu: MenuManager = MenuManager(surface=screen.logical, init_state=game_state)
@@ -31,7 +31,7 @@ if __name__ == "__main__":
         for event in pygame.event.get():
             screen.handle_events(event=event, game_state=game_state)
 
-        if game_state == "play":
+        if game_state == gs.PLAY:
             world.update_world(delta_time=delta_time)
         world.draw_world()
 
