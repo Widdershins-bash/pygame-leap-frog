@@ -31,6 +31,6 @@ class ButtonSprite:
         self.settings: pygame.Surface = self.sheet.subsurface((0, 5 * self.y_scalar, self.y_scalar, self.y_scalar))
 
     def sprite_sheet(self) -> pygame.Surface:
-        button_sheet: pygame.Surface = pygame.image.load(self.path + "buttonsheet.png")
+        button_sheet: pygame.Surface = pygame.image.load(self.path + "buttonsheet.png").convert_alpha()
         button_sheet = pygame.transform.scale_by(button_sheet, self.scalar)
         return button_sheet

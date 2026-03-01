@@ -18,6 +18,7 @@ class Screen:
         self.fullscreen: bool = False
 
         self.screen: pygame.Surface = pygame.display.set_mode((self.logical_size, self.logical_size), pygame.RESIZABLE)
+        self.alpha: pygame.Surface = pygame.Surface((self.logical_size, self.logical_size), flags=pygame.SRCALPHA)
         self.logical: pygame.Surface = pygame.Surface((self.logical_size, self.logical_size))
         self.viewport: pygame.Rect = pygame.Rect(0, 0, 0, 0)
         self.scalar: int = 1
@@ -36,10 +37,10 @@ class Screen:
             )
             self.logical.blit(note_render, note_pos)
 
-    def handle_events(self, event: pygame.Event, game_state: str) -> None:
-        self.running = event.type != pygame.QUIT
-        if game_state == gs.QUIT:
+    def handle_events(self, event: pygame.Event, game_state: gs) -> None:
+        if game_state == gs.QUIT or event.type == pygame.QUIT:
             self.running = False
+            return
 
         if event.type == pygame.KEYDOWN:
             self.running = event.key != pygame.K_ESCAPE or self.fullscreen  # temporary escape for testing
@@ -53,6 +54,7 @@ class Screen:
                 self.fullscreen = not self.fullscreen
 
     def draw_overlay(self) -> None:
+        self.logical.blit(self.alpha)
         self.display_fps()
         self.display_tips()
 
@@ -68,5 +70,6 @@ class Screen:
 
         self.viewport = pygame.Rect(logical_location, scale_point)
         self.screen.blit(logical_transform, logical_location)
+        self.alpha.fill((0, 0, 0, 0))
 
         pygame.display.flip()

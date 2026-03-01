@@ -4,15 +4,17 @@ from game.log import LogSystem
 from game.environment import EnvironmentManager
 from game.camera import Camera
 from runtime.constants import SCORE_OFFSET, ColorPalette as cp
+from runtime.music import Sfx
 
 
 class World:
 
-    def __init__(self, surface: pygame.Surface, grid_constant: int) -> None:
+    def __init__(self, surface: pygame.Surface, grid_constant: int, sfx: Sfx) -> None:
         self.surface: pygame.Surface = surface
         self.grid_constant: int = grid_constant
+        self.sfx: Sfx = sfx
 
-        self.player: Player = Player(surface=self.surface, size=self.grid_constant)
+        self.player: Player = Player(surface=self.surface, size=self.grid_constant, jump_sfx=self.sfx.jump_sfx)
         self.logs: LogSystem = LogSystem(surface=self.surface, girth=self.grid_constant)
         self.environment: EnvironmentManager = EnvironmentManager(
             surface=self.surface, grid_constant=self.grid_constant
@@ -71,3 +73,6 @@ class World:
         self.logs.draw()
         self.player.draw()
         self.draw_score()
+
+    def restart(self):
+        self.__init__(surface=self.surface, grid_constant=self.grid_constant, sfx=self.sfx)

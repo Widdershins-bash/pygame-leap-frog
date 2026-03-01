@@ -1,11 +1,12 @@
 import pygame
+from enum import Enum, auto
 
 # main
 SCREEN_MULTIPLIER: int = 4
 SCREEN_CONSTANT: int = SCREEN_MULTIPLIER * 120
 SIZE_CONSTANT: int = (SCREEN_MULTIPLIER - 1) * 10
 
-# menu
+# menu / button
 BUTTON_SCALAR: int = SCREEN_MULTIPLIER - 1
 MENU_MARGIN: int = BUTTON_SCALAR * 3
 
@@ -40,6 +41,9 @@ FPS: int = 120
 IMAGE_PATH: str = "assets/images/"
 IMAGE_SCALE_CONSTANT: int = 20
 
+# music
+MUSIC_PATH: str = "assets/audio/"
+
 
 # color palette
 class ColorPalette:
@@ -48,19 +52,19 @@ class ColorPalette:
     GROUND: pygame.typing.ColorLike = "#4e6e60"
     FROG: pygame.typing.ColorLike = "#81967e"
     SAND: pygame.typing.ColorLike = "#ccbb98"
+    ALPHA_SAND: pygame.typing.ColorLike = (204, 187, 152, 150)
 
     DEFAULT: pygame.typing.ColorLike = "#000000"
     FPS: pygame.typing.ColorLike = "#22ff00"
 
 
 # game state
-class GameState:
-    MAIN_MENU: str = "mainmenu"
-    PLAY: str = "play"
-    QUIT: str = "quit"
-    SETTINGS: str = "settings"
-
-    ACTIVE: str = "always"
+class GameState(Enum):
+    MAIN_MENU = auto()
+    PLAY = auto()
+    QUIT = auto()
+    SETTINGS = auto()
+    PAUSE = auto()
 
 
 # fonts

@@ -4,9 +4,10 @@ from runtime.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE, ColorPalette 
 
 class Player:
 
-    def __init__(self, surface: pygame.Surface, size: int) -> None:
+    def __init__(self, surface: pygame.Surface, size: int, jump_sfx: pygame.mixer.Sound | None = None) -> None:
         self.surface: pygame.Surface = surface
         self.size: int = size
+        self.jump_sfx: pygame.mixer.Sound | None = jump_sfx
 
         self.rect_size: float = self.size - self.size * RECT_SIZE_DECREASE
         self.margin: float = self.size - self.size * MARGIN_DECREASE
@@ -43,6 +44,9 @@ class Player:
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
             self.y_pos -= self.size
             self.score += 1
+
+            if self.jump_sfx:
+                self.jump_sfx.play()
 
         if pygame.key.get_just_pressed()[pygame.K_RIGHT]:
             self.x_pos += self.size

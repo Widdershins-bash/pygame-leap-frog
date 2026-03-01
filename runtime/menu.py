@@ -1,34 +1,47 @@
 import pygame
 from runtime.button import ButtonConfig, Button
-from runtime.constants import BUTTON_SCALAR, ColorPalette as cp, GameState as gs
+from runtime.constants import MENU_MARGIN, ColorPalette as cp, GameState as gs
+from runtime.music import Sfx
 
 
-# TODO figure out how I want to display the buttons and the background I want for them
-# - I want a legit background for the main menu, but then I will create an alpha surface for the options menu
-# - I want the legit background to be water with a few logs floating across it
-# - I want everything to be centered.
 class MenuManager:
-    def __init__(self, surface: pygame.Surface, init_state: str) -> None:
+    def __init__(self, surface: pygame.Surface, init_state: gs, sfx: Sfx) -> None:
         self.surface: pygame.Surface = surface
-        self.game_state: str = init_state
+        self.game_state: gs = init_state
 
-        self.button: ButtonConfig = ButtonConfig(surface=self.surface)
+        self.sfx: Sfx = sfx
+
+        self.button: ButtonConfig = ButtonConfig(
+            surface=self.surface, click_sfx=self.sfx.click_sfx, hover_sfx=self.sfx.hover_sfx
+        )
 
         self.main_menu: Menu = Menu(
             surface=self.surface, buttons=self.button.main_buttons, active_state=gs.MAIN_MENU, bg_color=cp.SAND
         )
         self.settings_widget: Menu = Menu(
-            surface=self.surface, buttons=[self.button.settings_widget], active_state=gs.ACTIVE, auto_pos=False
+            surface=self.surface, buttons=[self.button.settings_widget], auto_pos=False, active_state=gs.MAIN_MENU
         )
         self.settings_menu: Menu = Menu(
-            surface=self.surface, buttons=self.button.settings_buttons, active_state=gs.SETTINGS
+            surface=self.surface, buttons=self.button.settings_buttons, active_state=gs.SETTINGS, bg_color=cp.SAND
+        )
+        self.pause_widget: Menu = Menu(
+            surface=self.surface, buttons=[self.button.pause_widget], auto_pos=False, active_state=gs.PLAY
+        )
+        self.pause_menu: Menu = Menu(
+            surface=self.surface, buttons=self.button.pause_buttons, active_state=gs.PAUSE, bg_color=cp.ALPHA_SAND
         )
 
-        self.menus: list[Menu] = [self.main_menu, self.settings_widget, self.settings_menu]
+        self.menus: list[Menu] = [
+            self.main_menu,
+            self.settings_widget,
+            self.settings_menu,
+            self.pause_widget,
+            self.pause_menu,
+        ]
 
     def update(self, viewport: pygame.Rect, scale: int) -> None:
         for menu in self.menus:
-            if self.game_state == menu.active_state or menu.active_state == gs.ACTIVE:
+            if self.game_state == menu.active_state or menu.always_visible:
                 menu.update(viewport=viewport, scale=scale)
                 if menu.return_state:
                     self.game_state = menu.return_state
@@ -36,7 +49,7 @@ class MenuManager:
 
     def draw(self) -> None:
         for menu in self.menus:
-            if self.game_state == menu.active_state or menu.active_state == gs.ACTIVE:
+            if self.game_state == menu.active_state or menu.always_visible:
                 menu.draw()
 
 
@@ -45,15 +58,17 @@ class Menu:
         self,
         surface: pygame.Surface,
         buttons: list[Button],
-        active_state: str,
+        active_state: gs | None = None,
         auto_pos: bool = True,
+        always_visible: bool = False,
         bg_image: pygame.Surface | None = None,
         bg_color: pygame.typing.ColorLike | None = None,
     ) -> None:
         self.surface: pygame.Surface = surface
         self.buttons: list[Button] = buttons
         self.auto_pos: bool = auto_pos
-        self.active_state: str = active_state
+        self.always_visible: bool = always_visible
+        self.active_state: gs | None = active_state
 
         if self.auto_pos:
             self.set_positions()
@@ -62,10 +77,10 @@ class Menu:
         self.bg_color: pygame.typing.ColorLike | None = bg_color
         self.bg_rect: pygame.Rect = pygame.Rect(0, 0, self.surface.width, self.surface.height)
 
-        self.return_state: str | None = None
+        self.return_state: gs | None = None
 
     def set_positions(self):
-        spacing: int = BUTTON_SCALAR * 2
+        spacing: int = MENU_MARGIN
         n: int = len(self.buttons)
 
         for i, button in enumerate(self.buttons):
