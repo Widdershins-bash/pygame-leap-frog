@@ -4,22 +4,15 @@ from runtime.constants import BUTTON_SCALAR, MENU_MARGIN, GameState as gs
 
 
 class ButtonConfig:
-    def __init__(self, surface: pygame.Surface, click_sfx: pygame.mixer.Sound, hover_sfx: pygame.mixer.Sound) -> None:
+    def __init__(self, surface: pygame.Surface) -> None:
         self.surface: pygame.Surface = surface
 
         self.image: ImageManager = ImageManager(scalar=BUTTON_SCALAR)
         self.sprite: ButtonSprite = self.image.button
 
-        self.click: pygame.mixer.Sound = click_sfx
-        self.hover: pygame.mixer.Sound = hover_sfx
-
         self.main_buttons: list[Button] = [
-            ActionButton(
-                surface=self.surface, image=self.sprite.play, action=gs.PLAY, click_sfx=self.click, hover_sfx=self.hover
-            ),
-            ActionButton(
-                surface=self.surface, image=self.sprite.quit, action=gs.QUIT, click_sfx=self.click, hover_sfx=self.hover
-            ),
+            ActionButton(surface=self.surface, image=self.sprite.play, action=gs.PLAY),
+            ActionButton(surface=self.surface, image=self.sprite.quit, action=gs.QUIT),
         ]
 
         self.settings_widget: Button = ActionButton(
@@ -27,18 +20,10 @@ class ButtonConfig:
             image=self.sprite.settings,
             action=gs.SETTINGS,
             pos=(self.surface.width - self.sprite.y_scalar - MENU_MARGIN, MENU_MARGIN),
-            click_sfx=self.click,
-            hover_sfx=self.hover,
         )
 
         self.settings_buttons: list[Button] = [
-            ActionButton(
-                surface=self.surface,
-                image=self.sprite.menu,
-                action=gs.MAIN_MENU,
-                click_sfx=self.click,
-                hover_sfx=self.hover,
-            ),
+            ActionButton(surface=self.surface, image=self.sprite.menu, action=gs.MAIN_MENU),
             VolumeSlider(surface=self.surface, image=self.sprite.volume),
         ]
 
@@ -47,24 +32,10 @@ class ButtonConfig:
             image=self.sprite.settings,
             action=gs.PAUSE,
             pos=(self.surface.width - self.sprite.y_scalar - MENU_MARGIN, MENU_MARGIN),
-            click_sfx=self.click,
-            hover_sfx=self.hover,
         )
         self.pause_buttons: list[Button] = [
-            ActionButton(
-                surface=self.surface,
-                image=self.sprite.resume,
-                action=gs.PLAY,
-                click_sfx=self.click,
-                hover_sfx=self.hover,
-            ),
-            ActionButton(
-                surface=self.surface,
-                image=self.sprite.menu,
-                action=gs.MAIN_MENU,
-                click_sfx=self.click,
-                hover_sfx=self.hover,
-            ),
+            ActionButton(surface=self.surface, image=self.sprite.resume, action=gs.PLAY),
+            ActionButton(surface=self.surface, image=self.sprite.menu, action=gs.MAIN_MENU),
             VolumeSlider(surface=self.surface, image=self.sprite.volume),
         ]
 
@@ -78,26 +49,36 @@ class Button:
         enabled: bool = True,
         action: gs | None = None,
         pos: tuple[int, int] = (0, 0),
-        click_sfx: pygame.mixer.Sound | None = None,
-        hover_sfx: pygame.mixer.Sound | None = None,
     ) -> None:
         self.surface: pygame.Surface = surface
-        self.image: pygame.Surface = image
+        self.display_image: pygame.Surface = image
         self.enabled: bool = enabled
         self.action: gs | None = action
         self.pos: tuple[int, int] = pos
-        self.click_sfx: pygame.mixer.Sound | None = click_sfx
-        self.hover_sfx: pygame.mixer.Sound | None = hover_sfx
 
-        self.pressed: bool = False
-        self.mouse_pos: tuple[int, int] | None = None
+        self.clicked: bool = False
+        self.click_source: bool = False
+        self.ping_focused: bool = False
+        self.focused: bool = False
         self.touching: bool = False
-        self.mouse_down: bool = False
-        self.mouse_up: bool = False
 
-        self.base_image: pygame.Surface = self.image
+        self.mouse_pos: tuple[int, int] | None = None
+
+        self.base_image: pygame.Surface = self.display_image
         self.glow_image: pygame.Surface = self.create_hue(offset=40)
         self.shadow_image: pygame.Surface = self.create_hue(offset=-40)
+
+    def create_hue(self, offset: int) -> pygame.Surface:
+        hue: pygame.Surface = self.display_image.copy()
+        if offset < 0:
+            amount: int = abs(offset)
+            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_SUB)
+
+        else:
+            amount: int = offset
+            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_ADD)
+
+        return hue
 
     def scale_mouse(self, viewport: pygame.Rect, scale: int) -> tuple[int, int] | None:
         mouse_x, mouse_y = pygame.mouse.get_pos()
@@ -109,17 +90,24 @@ class Button:
 
         return scale_x, scale_y
 
-    def create_hue(self, offset: int) -> pygame.Surface:
-        hue: pygame.Surface = self.image.copy()
-        if offset < 0:
-            amount: int = abs(offset)
-            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_SUB)
+    def check_click(self) -> None:
+        mouse_down: bool = pygame.mouse.get_pressed()[0]
+        mouse_up: bool = pygame.mouse.get_just_released()[0]
 
-        else:
-            amount: int = offset
-            hue.fill((amount, amount, amount), special_flags=pygame.BLEND_RGB_ADD)
+        if mouse_down:
+            self.display_image = self.shadow_image
 
-        return hue
+        elif mouse_up:
+            self.clicked = True
+
+    def check_focus(self):
+        self.display_image = self.glow_image
+
+        self.focused = False
+
+        if not self.ping_focused:
+            self.focused = True
+            self.ping_focused = True
 
     def update(self, viewport: pygame.Rect, scale: int) -> None:
         self.mouse_pos = self.scale_mouse(viewport=viewport, scale=scale)
@@ -127,15 +115,22 @@ class Button:
             return
 
         if not self.enabled:
-            self.image = self.shadow_image
+            self.display_image = self.shadow_image
             return
 
-        self.touching = self.image.get_rect(topleft=self.pos).collidepoint(self.mouse_pos)
-        self.mouse_down = pygame.mouse.get_pressed()[0]
-        self.mouse_up = pygame.mouse.get_just_released()[0]
+        self.touching = self.display_image.get_rect(topleft=self.pos).collidepoint(self.mouse_pos)
 
     def draw(self) -> None:
-        self.surface.blit(self.image, self.pos)
+        self.surface.blit(self.display_image, self.pos)
+
+    def clear_state(self) -> None:
+        self.clicked = False
+        self.click_source = False
+        self.check_for_click = False
+        self.ping_focused = False
+        self.focused = False
+        self.touching = False
+        self.display_image = self.base_image
 
 
 class ActionButton(Button):
@@ -147,36 +142,15 @@ class ActionButton(Button):
         enabled: bool = True,
         action: gs | None = None,
         pos: tuple[int, int] = (0, 0),
-        click_sfx: pygame.mixer.Sound | None = None,
-        hover_sfx: pygame.mixer.Sound | None = None,
     ) -> None:
-        super().__init__(surface, image, enabled, action, pos, click_sfx, hover_sfx)
-
-        self.hover_toggle: bool = True
+        super().__init__(surface, image, enabled, action, pos)
 
     def update(self, viewport: pygame.Rect, scale: int):
         super().update(viewport, scale)
 
         if self.touching:
-            self.image = self.glow_image
-
-            if self.hover_sfx and self.hover_toggle:
-                self.hover_sfx.play()
-                self.hover_toggle = False
-
-            if self.mouse_down:
-                self.image = self.shadow_image
-
-            elif self.mouse_up:
-                self.pressed = True
-
-                if self.click_sfx:
-                    self.click_sfx.play()
-
-        else:
-            self.image = self.base_image
-            self.pressed = False
-            self.hover_toggle = True
+            self.check_focus()
+            self.check_click()
 
 
 class VolumeSlider(Button):

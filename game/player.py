@@ -4,15 +4,15 @@ from runtime.constants import RECT_SIZE_DECREASE, MARGIN_DECREASE, ColorPalette 
 
 class Player:
 
-    def __init__(self, surface: pygame.Surface, size: int, jump_sfx: pygame.mixer.Sound | None = None) -> None:
+    def __init__(self, surface: pygame.Surface, size: int) -> None:
         self.surface: pygame.Surface = surface
         self.size: int = size
-        self.jump_sfx: pygame.mixer.Sound | None = jump_sfx
 
         self.rect_size: float = self.size - self.size * RECT_SIZE_DECREASE
         self.margin: float = self.size - self.size * MARGIN_DECREASE
 
         self.in_water: bool = True
+        self.jumped: bool = False
 
         self.x_pos, self.y_pos = self.start_pos()
         self.speed_offset: int = 0
@@ -43,10 +43,7 @@ class Player:
     def handle_movement(self) -> None:
         if pygame.key.get_just_pressed()[pygame.K_SPACE]:
             self.y_pos -= self.size
-            self.score += 1
-
-            if self.jump_sfx:
-                self.jump_sfx.play()
+            self.jumped = True
 
         if pygame.key.get_just_pressed()[pygame.K_RIGHT]:
             self.x_pos += self.size
@@ -63,7 +60,11 @@ class Player:
     def update(self, camera_offset: float, respawn_pos: float) -> None:
         self.y_pos += camera_offset
         self.handle_movement()
+
         if self.in_water:
             self.respawn(pos=respawn_pos)
-
         self.in_water = True
+
+        if self.jumped:
+            self.score += 1
+            self.jumped = False

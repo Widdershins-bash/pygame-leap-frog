@@ -13,6 +13,9 @@ class Sfx:
 
         self.jump_sfx: pygame.mixer.Sound = pygame.mixer.Sound(MUSIC_PATH + "footstep_one.mp3")
 
+        self.swoosh_sfx: pygame.mixer.Sound = pygame.mixer.Sound(MUSIC_PATH + "swoosh.mp3")
+        self.swoosh_sfx.set_volume(0.2)
+
     def play(self):
         pygame.mixer.music.load(MUSIC_PATH + "8bit_canon.mp3")
         pygame.mixer.music.play(0)

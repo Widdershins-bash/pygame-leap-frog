@@ -14,7 +14,7 @@ class World:
         self.grid_constant: int = grid_constant
         self.sfx: Sfx = sfx
 
-        self.player: Player = Player(surface=self.surface, size=self.grid_constant, jump_sfx=self.sfx.jump_sfx)
+        self.player: Player = Player(surface=self.surface, size=self.grid_constant)
         self.logs: LogSystem = LogSystem(surface=self.surface, girth=self.grid_constant)
         self.environment: EnvironmentManager = EnvironmentManager(
             surface=self.surface, grid_constant=self.grid_constant
