@@ -6,6 +6,8 @@ from game.camera import Camera
 from runtime.constants import SCORE_OFFSET, ColorPalette as cp
 from runtime.music import Sfx
 
+import random
+
 
 class World:
 
@@ -45,10 +47,16 @@ class World:
         if collided:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
 
+            if self.player.jumped:
+                random.choice(self.sfx.log_sfx).play()
+
     def check_player_environment_collision(self) -> None:
         collided, aligned_x, aligned_y = self.environment.check_collisions(object=self.player.get_rect())
         if collided:
             self.player.land_on_object(aligned_x_pos=aligned_x, aligned_y_pos=aligned_y)
+
+            if self.player.jumped:
+                random.choice(self.sfx.grass_sfx).play()
 
     def update_collisions(self) -> None:
         self.check_player_log_collision()

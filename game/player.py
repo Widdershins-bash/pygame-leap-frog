@@ -58,13 +58,13 @@ class Player:
         pygame.draw.rect(self.surface, cp.FROG, self.get_rect(), border_radius=self.size // 2)
 
     def update(self, camera_offset: float, respawn_pos: float) -> None:
+        if self.jumped:
+            self.score += 1
+            self.jumped = False
+
         self.y_pos += camera_offset
         self.handle_movement()
 
         if self.in_water:
             self.respawn(pos=respawn_pos)
         self.in_water = True
-
-        if self.jumped:
-            self.score += 1
-            self.jumped = False

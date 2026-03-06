@@ -1,5 +1,5 @@
 import pygame
-from runtime.button import ButtonConfig, Button
+from runtime.button import ButtonConfig, Button, VolumeSlider
 from runtime.constants import MENU_MARGIN, ColorPalette as cp, GameState as gs
 from runtime.music import Sfx
 
@@ -40,7 +40,6 @@ class MenuManager:
 
     def update(self, viewport: pygame.Rect, scale: int) -> None:
         for menu in self.menus:
-            menu.deactivate()
             if self.game_state == menu.active_state or menu.always_visible:
                 menu.update(viewport=viewport, scale=scale, sfx=self.sfx)
                 if menu.opened and not menu.is_widget:
@@ -49,6 +48,8 @@ class MenuManager:
                 if menu.return_state:
                     self.game_state = menu.return_state
                     break
+            else:
+                menu.deactivate()
 
     def draw(self) -> None:
         for menu in self.menus:
@@ -85,7 +86,7 @@ class Menu:
 
         self.return_state: gs | None = None
 
-    def set_positions(self):
+    def set_positions(self) -> None:
         spacing: int = MENU_MARGIN
         n: int = len(self.buttons)
 
@@ -97,19 +98,19 @@ class Menu:
 
             button.pos = (x, y)
 
-    def check_open(self):
+    def check_open(self) -> None:
         self.opened = False
 
         if not self.ping_open:
             self.opened = True
             self.ping_open = True
 
-    def deactivate(self):
+    def deactivate(self) -> None:
         self.ping_open = False
         self.opened = False
         self.return_state = None
         for button in self.buttons:
-            button.clear_state()
+            button.prep_state()
 
     def update(self, viewport: pygame.Rect, scale: int, sfx: Sfx) -> None:
         self.check_open()
@@ -122,6 +123,13 @@ class Menu:
 
             if button.focused:
                 sfx.hover_sfx.play()
+
+            if isinstance(button, VolumeSlider):
+                if button.set_volume:
+                    sfx.audio_state.set_volume(value=button.volume)
+                    sfx.update_volume()
+                else:
+                    button.sync_volume(sfx.audio_state.volume)
 
     def draw(self) -> None:
         if self.bg_color:

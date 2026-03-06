@@ -1,6 +1,6 @@
 import pygame
 from runtime.image import ImageManager, ButtonSprite
-from runtime.constants import BUTTON_SCALAR, MENU_MARGIN, GameState as gs
+from runtime.constants import BUTTON_SCALAR, MENU_MARGIN, SCALED_SLIDER_LENGTH, SCALED_SLIDER_START_X, GameState as gs
 
 
 class ButtonConfig:
@@ -24,7 +24,7 @@ class ButtonConfig:
 
         self.settings_buttons: list[Button] = [
             ActionButton(surface=self.surface, image=self.sprite.menu, action=gs.MAIN_MENU),
-            VolumeSlider(surface=self.surface, image=self.sprite.volume),
+            VolumeSlider(surface=self.surface, image=self.sprite.volume, knob_image=self.sprite.knob),
         ]
 
         self.pause_widget: Button = ActionButton(
@@ -36,7 +36,7 @@ class ButtonConfig:
         self.pause_buttons: list[Button] = [
             ActionButton(surface=self.surface, image=self.sprite.resume, action=gs.PLAY),
             ActionButton(surface=self.surface, image=self.sprite.menu, action=gs.MAIN_MENU),
-            VolumeSlider(surface=self.surface, image=self.sprite.volume),
+            VolumeSlider(surface=self.surface, image=self.sprite.volume, knob_image=self.sprite.knob),
         ]
 
 
@@ -57,7 +57,6 @@ class Button:
         self.pos: tuple[int, int] = pos
 
         self.clicked: bool = False
-        self.click_source: bool = False
         self.ping_focused: bool = False
         self.focused: bool = False
         self.touching: bool = False
@@ -90,7 +89,7 @@ class Button:
 
         return scale_x, scale_y
 
-    def check_click(self) -> None:
+    def check_for_click(self) -> None:
         mouse_down: bool = pygame.mouse.get_pressed()[0]
         mouse_up: bool = pygame.mouse.get_just_released()[0]
 
@@ -100,7 +99,7 @@ class Button:
         elif mouse_up:
             self.clicked = True
 
-    def check_focus(self):
+    def check_for_focus(self) -> None:
         self.display_image = self.glow_image
 
         self.focused = False
@@ -123,10 +122,8 @@ class Button:
     def draw(self) -> None:
         self.surface.blit(self.display_image, self.pos)
 
-    def clear_state(self) -> None:
+    def prep_state(self) -> None:
         self.clicked = False
-        self.click_source = False
-        self.check_for_click = False
         self.ping_focused = False
         self.focused = False
         self.touching = False
@@ -145,12 +142,15 @@ class ActionButton(Button):
     ) -> None:
         super().__init__(surface, image, enabled, action, pos)
 
-    def update(self, viewport: pygame.Rect, scale: int):
+    def update(self, viewport: pygame.Rect, scale: int) -> None:
         super().update(viewport, scale)
 
         if self.touching:
-            self.check_focus()
-            self.check_click()
+            self.check_for_focus()
+            self.check_for_click()
+
+        else:
+            self.prep_state()
 
 
 class VolumeSlider(Button):
@@ -158,47 +158,111 @@ class VolumeSlider(Button):
         self,
         surface: pygame.Surface,
         image: pygame.Surface,
+        knob_image: pygame.Surface,
         enabled: bool = True,
         action: gs | None = None,
         pos: tuple[int, int] = (0, 0),
     ) -> None:
         super().__init__(surface, image, enabled, action, pos)
 
+        self.knob_image: pygame.Surface = knob_image
+        self.x_range: int = SCALED_SLIDER_LENGTH
+        self.volume: int = 50
+        self.set_volume: bool = False
+        self.knob: SliderKnob = SliderKnob(surface=self.surface, image=self.knob_image, x_range=self.x_range)
 
-# class SliderKnob:
-#     def __init__(self, surface: pygame.Surface, image: pygame.Surface, parent: Button, auto_pos: bool) -> None:
-#         super().__init__(surface, image, auto_pos=auto_pos)
+    def get_knob_pos(self) -> tuple[int, int]:
+        x: int = self.pos[0] + SCALED_SLIDER_START_X
+        y: int = self.pos[1] + (self.display_image.height - self.knob.display_image.height) // 2
+        return x, y
 
-#         self.parent: Button = parent
+    def sync_volume(self, volume: int) -> None:
+        clamped: int = max(0, min(100, volume))
+        if self.volume == clamped:
+            return
 
-#         self.left_bound: int = self.parent.pos[0]
-#         self.right_bound: int = self.left_bound + self.parent.image.width
+        self.volume = clamped
+        self.knob.volume = clamped
+        self.knob.set_volume_position()
 
-#         self.x_pos: int = self.left_bound
-#         self.y_pos: int = self.parent.pos[1] + self.parent.image.height // 2
+    def mouse_in_range(self) -> bool:
+        if self.mouse_pos:
+            in_x_range: bool = (self.knob.start_pos[0] + self.x_range) >= self.mouse_pos[0] >= self.knob.start_pos[0]
+            in_y_range: bool = self.pos[1] <= self.mouse_pos[1] <= (self.pos[1] + self.display_image.height)
+            return True if in_x_range and in_y_range else False
 
-#         self.base_image: pygame.Surface = self.image
-#         self.glow_image: pygame.Surface = self.create_hue(offset=40)
-#         self.shadow_image: pygame.Surface = self.create_hue(offset=-40)
+        return False
 
-#     def update(self, viewport: pygame.Rect, scale: int) -> None:
-#         mouse_pos: tuple[int, int] | None = self.scale_mouse(viewport=viewport, scale=scale)
-#         if not mouse_pos or not self.parent.enabled:
-#             return
+    def update(self, viewport: pygame.Rect, scale: int) -> None:
+        super().update(viewport, scale)
+        if self.knob.start_pos == (0, 0):
+            self.knob.start_pos = self.get_knob_pos()
+            self.knob.volume = self.volume
+            self.knob.set_volume_position()
 
-#         touching: bool = self.image.get_rect(topleft=(self.x_pos, self.y_pos)).collidepoint(mouse_pos)
-#         mouse_down: bool = pygame.mouse.get_pressed()[0]
-#         mouse_up: bool = pygame.mouse.get_just_released()[0]
+        self.knob.mouse_in_range = self.mouse_in_range()
+        self.knob.update(viewport=viewport, scale=scale)
 
-#         print(self.x_pos, self.y_pos)
+        self.set_volume = self.knob.set_volume
+        self.volume = self.knob.volume
 
-#         if touching:
-#             self.image = self.glow_image
-#             print("touching")
+    def draw(self) -> None:
+        super().draw()
+        self.knob.draw()
 
-#             if mouse_down:
-#                 self.image = self.shadow_image
-#                 self.x_pos = max(self.left_bound, min(mouse_pos[0], self.right_bound))
 
-#         else:
-#             self.image = self.base_image
+class SliderKnob(Button):
+    def __init__(
+        self,
+        surface: pygame.Surface,
+        image: pygame.Surface,
+        enabled: bool = True,
+        action: gs | None = None,
+        pos: tuple[int, int] = (0, 0),
+        x_range: int = 0,
+    ) -> None:
+        super().__init__(surface, image, enabled, action, pos)
+        self.x_range: int = x_range
+        self.start_pos: tuple[int, int] = pos
+        self.volume: int = 50
+        self.set_volume: bool = False
+
+        self.mouse_in_range: bool = False
+
+    def update(self, viewport: pygame.Rect, scale: int) -> None:
+        super().update(viewport, scale)
+        if self.touching:
+            self.check_for_focus()
+
+        else:
+            self.prep_state()
+
+        self.check_for_drag()
+
+    def check_for_drag(self) -> None:
+        mouse_down: bool = pygame.mouse.get_pressed()[0]
+        self.set_volume = False
+
+        if mouse_down and self.mouse_in_range:
+            self.display_image = self.shadow_image
+            self.pos = (self.mouse_pos[0] - self.display_image.width // 2 if self.mouse_pos else 0, self.start_pos[1])
+            self.check_range()
+            self.update_volume()
+        else:
+            self.check_range()
+
+    def update_volume(self) -> None:
+        self.volume = int(((self.pos[0] - self.start_pos[0]) / self.x_range) * 100)
+        self.set_volume = True
+
+    def set_volume_position(self) -> None:
+        if self.start_pos == (0, 0):
+            return
+        self.pos = int((self.volume / 100) * self.x_range + self.start_pos[0]), self.start_pos[1]
+
+    def check_range(self) -> None:
+        if self.pos[0] < self.start_pos[0]:
+            self.pos = self.start_pos
+
+        elif self.pos[0] > self.start_pos[0] + self.x_range:
+            self.pos = self.start_pos[0] + self.x_range, self.start_pos[1]
