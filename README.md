@@ -34,7 +34,7 @@ This project is structured like a compact game prototype, which makes it useful 
 ### 1. Clone the repository
 
 ```powershell
-git clone <your-repo-url>
+git clone git@github.com:Widdershins-bash/pygame-leap-frog.git
 cd LeapFrog
 ```
 
@@ -73,12 +73,6 @@ With the virtual environment active:
 
 ```bash
 python main.py
-```
-
-If `python` does not map to Python 3 on your machine, use:
-
-```bash
-python3 main.py
 ```
 
 ## 🔄 Pulling the Latest Changes
