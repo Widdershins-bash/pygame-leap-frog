@@ -2,7 +2,7 @@
 
 Leap Frog is a small arcade-style Pygame project built around simple movement, reactive menus, and a clean grid-based world loop. The player hops across moving logs, avoids falling into water, and pushes upward to raise their score as the camera follows the action.
 
-This project is structured like a compact game prototype, which makes it useful both as a playable experiment and as a portfolio piece showing game-loop organization, menu/state handling, asset management, collision systems, and modular Python code. 🎮
+This project was an experiment with how I could intuitively create game-loop organization, menu/state handling, asset management, collision systems, and modular Python code. 🎮
 
 ## ✨ Highlights
 
